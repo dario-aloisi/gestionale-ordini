@@ -1,0 +1,590 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <div class="page-header">
+        <h1>✏️ Modifica Storico Ordine #{{ ordine.id }} del {{ ordine.data_consegna.strftime('%d/%m/%Y') }}</h1>
+        <button class="btn-home" onclick="history.back()">Indietro</button>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="form-group flex-1">
+            <label for="note_ordine" class="font-weight-bold text-muted">📝 Note Ordine</label>
+            <textarea id="note_ordine">{{ ordine.note or '' }}</textarea>
+        </div>
+    </div>
+
+    <div class="card card-dashed">
+        <h2 class="card-title">Aggiungi riga all'ordine</h2>
+        
+        <div class="form-row flex-end-align">
+            
+            <div class="form-group flex-2 min-200">
+                <a id="btn-link-analisi" href="#">
+                    📊 Vedi Storico
+                </a>
+                <label for="select_cliente">Cliente</label>
+                <select id="select_cliente" class="select2-box">
+                    <option value=""></option>
+                    {% for c in clienti_tutti %}
+                    <option value="{{ c.id }}" data-tipo="clienti">{{ c.nome }} (Cod. {{ c.codice }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group flex-2 min-200">
+                <label for="select_prodotto">Prodotto</label>
+                <select id="select_prodotto" class="select2-box" onchange="cambiaPrezzoAdd()">
+                    <option value="" data-prezzo="0"></option>
+                    {% for p in prodotti %}
+                    <option value="{{ p.id }}" data-tipo="prodotti" data-prezzo="{{ p.prezzo }}">{{ p.nome }} (Cod. {{ p.codice }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group flex-0 min-100">
+                <label for="new_qta">Cartoni</label>
+                <input type="number" id="new_qta" min="1" step="1" value="1" class="text-center form-control">
+            </div>
+
+            <div class="form-group flex-0 min-100">
+                <label for="new_prezzo">Prezzo (€)</label>
+                <input type="number" id="new_prezzo" step="0.01" min="0.00" class="text-center form-control" required>
+            </div>
+
+            <div class="form-group">
+                <button type="button" onclick="aggiungiRiga()" class="btn-add-row" id="btn_add_row">
+                    ⬇️ Aggiungi
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Riepilogo Storico Ordine</h2>
+        
+        <table id="tabella-modifica" class="data-table display width-100">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Cliente</th>
+                    <th style="width: 45%;">Prodotto</th>
+                    <th style="width: 12%;">Qta</th>
+                    <th style="width: 8%;">Prezzo (€)</th>
+                    <th style="width: 8%;">Totale (€)</th>
+                    <th style="width: 12%;">Azioni</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-righe"></tbody>
+        </table>
+
+        <div class="totali-box">
+            <div class="totale-item">
+                Totale Clienti: <span id="tot-clienti" class="totale-numero">0</span>
+            </div>
+            <div class="totale-item">
+                Totale Cartoni: <span id="tot-cartoni" class="totale-numero">0</span>
+            </div>
+            <div class="totale-item">
+                Totale Aggiornato: <span id="totale-generale" class="totale-numero" style="color: green;">0.00 €</span>
+            </div>
+        </div>
+
+        <hr>
+        <div class="footer-buttons">
+            <button id="btn_conferma" class="btn-confirm" onclick="salvaModifiche()">
+                💾 SALVA MODIFICHE REALI
+            </button>
+        </div>
+        
+    </div>
+</div>
+
+<script id="dati-ordine-json" type="application/json">
+    {{ dettagli_iniziali | tojson | safe }}
+</script>
+
+<script>
+    // 1. CARICAMENTO DATI INIZIALI
+    var tabella = null;
+    var righeAttuali = [];
+    try {
+        righeAttuali = JSON.parse(document.getElementById('dati-ordine-json').textContent);
+    } catch(e) { console.error(e); }
+
+    // 2. FUNZIONE PER DISEGNARE LE STELLE (Copiata da crea ordine)
+    function formatProductState(state) {
+        if (!state.id) return state.text;
+        
+        var element = $(state.element);
+        var tipo = element.attr('data-tipo'); 
+        
+        // --- 1. LOGICA STELLA (Visualizzazione) ---
+        // Recuperiamo lo score dall'attributo HTML data-score
+        var score = element.attr('data-score');
+        var htmlTesto = state.text;
+
+        // Se c'è uno score, arricchiamo il testo visualizzato
+        if (score && parseInt(score) > 0) {
+            htmlTesto = '<span style="color:#f1c40f;">⭐</span> ' + state.text + ' <span style="font-size:1em; color:#2c2e2f; font-weight:normal;">(' + score + ')</span>';
+        }
+
+        // Se non c'è il "tipo" (es. opzioni di sistema), restituiamo solo il testo formattato
+        if (!tipo) return $('<span>' + htmlTesto + '</span>');
+
+        // --- 2. LOGICA MATITA (Modifica) ---
+        var urlModifica = "/" + tipo + "/modifica/" + state.id + "?next=crea_ordine";
+        
+        // --- 3. COSTRUZIONE HTML FINALE ---
+        var $state = $(
+            '<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">' +
+                '<span>' + htmlTesto + '</span>' +
+                '<span onmousedown="event.preventDefault(); event.stopPropagation();"' +
+                      ' onmouseup="event.preventDefault(); event.stopPropagation(); window.location.href=\'' + urlModifica + '\';"' +
+                      ' class="btn-edit-select"' +
+                      ' style="cursor: pointer; color: #f39c12; font-weight: bold; font-size: 1.3rem; padding-left: 15px; z-index: 9999;">' +
+                      '✏️' +
+                '</span>' +
+            '</div>'
+        );
+        return $state;
+    }
+
+    $(document).ready(function() {
+        // Funzione Helper per aggiungere il tasto "Aggiungi Nuovo"
+        function setupAddButton(selectId, text, formId) {
+            $(selectId).off('select2:open');
+            $(selectId).on('select2:open', function() {
+                $('.custom-add-btn').remove();
+                var a = $('<a class="custom-add-btn" style="display:block; padding:10px; background:#e8f8f5; color:#27ae60; font-weight:bold; cursor:pointer; border-bottom:1px solid #ddd;">➕ ' + text + '</a>');
+                a.on('mousedown', function(e) {
+                    e.preventDefault(); e.stopPropagation();
+                    $(selectId).select2('close');
+                });
+                var resultsId = "select2-" + $(selectId).attr('id') + "-results";
+                $('#' + resultsId).parent().prepend(a);
+            });
+        }
+
+        // Configurazione Select2
+        $('#select_cliente').select2({
+            placeholder: "Cerca Cliente...", allowClear: true, width: '100%',
+            templateResult: formatProductState, escapeMarkup: function(m) { return m; },
+            language: { noResults: function() { return "Nessun risultato trovato"; }, searching: function() { return "Sto cercando..."; } }
+        });
+        setupAddButton('#select_cliente', 'AGGIUNGI NUOVO CLIENTE...');
+
+        $('#select_prodotto').select2({
+            placeholder: "Cerca Prodotto...", allowClear: true, width: '100%',
+            templateResult: formatProductState, escapeMarkup: function(m) { return m; },
+            language: { noResults: function() { return "Nessun risultato trovato"; }, searching: function() { return "Sto cercando..."; } }
+        });
+        setupAddButton('#select_prodotto', 'AGGIUNGI NUOVO PRODOTTO...');
+
+        initLogicaSuggerimenti(); // Logica intelligente copiata
+        // DATATABLES
+        if ($('#tabella-modifica').length) {
+            tabella = $('#tabella-modifica').DataTable({
+                "paging": false, "searching": false, "info": false, "ordering": true,
+                "order": [[0, 'asc']], 
+                "language": { "emptyTable": "Nessun prodotto inserito. Aggiungine uno sopra!👆" },
+                "columnDefs": [ { "orderable": false, "targets": 3 }, { "orderable": false, "targets": 2 } ]
+            });
+        }
+        renderTabella();
+    });
+
+    // 3. LOGICA SUGGERIMENTI / ORDINAMENTO / LINK STORICO
+        // ASCOLTATORE CAMBIO CLIENTE (Il cuore del suggeritore)
+        // Memorizziamo l'elenco originale delle opzioni prodotti all'avvio della pagina
+        // Questo serve per poter "resettare" l'ordine alfabetico quando cambiamo cliente
+    function initLogicaSuggerimenti() {
+        var $selectProd = $('#select_prodotto');
+        var opzioniOriginali = $selectProd.find('option').clone();
+
+        // ASCOLTATORE CAMBIO CLIENTE
+        $('#select_cliente').on('change', function (e) {
+            var clienteId = $(this).val();
+            var clienteNome = "";
+            if (clienteId) {
+                clienteNome = $(this).find('option:selected').text().split(' (Cod.')[0];
+            }
+
+            // Reset o Aggiornamento Link se non c'è cliente selezionato
+            if (!clienteId) {
+                $('#btn-link-analisi').hide();
+                
+                // Reset prodotti (codice vecchio)
+                $selectProd.empty().append(opzioniOriginali.clone());
+                $selectProd.val(null).trigger('change.select2');
+                return;
+            }
+
+            // --- LINK ANALISI ---
+            // Recuperiamo l'ID dell'ordine corrente da Jinja (lo salviamo in una variabile JS per comodità)
+            var currentOrdineId = parseInt('{{ ordine.id }}');
+
+            $('#btn-link-analisi')
+                .text("📊 Vedi storico di '" + clienteNome +"'")
+                .attr('href', "/storico?cliente_id=" + clienteId + "&from=modifica_ordine&ordine_id=" + currentOrdineId) 
+                .show();
+
+            // --- RICARICA SUGGERIMENTI PRODOTTI ---
+            fetch('/api/suggerimenti_cliente/' + clienteId)
+            .then(r => r.json())
+            .then(suggerimenti => {
+                var nuoveOpzioni = opzioniOriginali.clone();
+                
+                nuoveOpzioni.each(function() {
+                    var id = $(this).val();
+                    if (id && suggerimenti[id]) {
+                        var qta = suggerimenti[id];
+                        
+                        // Impostiamo l'attributo data-score HTML
+                        $(this).attr('data-score', qta);
+                        
+                        // NON TOCCHIAMO IL TESTO!
+                        
+                    } else {
+                        $(this).attr('data-score', 0);
+                    }
+                });
+
+                // Ordina le opzioni in base allo score
+                nuoveOpzioni.sort(function(a, b) {
+                    var scoreA = parseInt($(a).attr('data-score')) || 0;
+                    var scoreB = parseInt($(b).attr('data-score')) || 0;
+                    
+                    if (scoreA > 0 || scoreB > 0) {
+                        return scoreB - scoreA; // Decrescente
+                    }
+                    return $(a).text().localeCompare($(b).text()); // Alfabetico
+                });
+
+                // INSERIMENTO E REFRESH
+                $selectProd.empty().append(nuoveOpzioni);
+                $selectProd.val(null).trigger('change.select2'); 
+            });
+        });
+        
+        // Se deseleziona cliente, pulisci
+        $('#select_cliente').on('select2:clear', function() {
+            $('#btn-link-analisi').hide();
+            // Resetta nomi prodotti (togli stelle)
+            var selectProd = $('#select_prodotto');
+            selectProd.find('option').each(function() {
+                var text = $(this).text().replace(/^⭐\s+/, '').replace(/\s+\(\d+\)$/, '');
+                $(this).text(text);
+            });
+            // Riordina alfabeticamente base (opzionale, o lascia così)
+            selectProd.trigger('change');
+        });
+    }
+
+    // 4. LOGICA PREZZO AUTOMATICO
+    function cambiaPrezzoAdd() {
+        let selected = $('#select_prodotto').find(':selected');
+        let prezzoBase = selected.data('prezzo');
+        if(prezzoBase) {
+            $('#new_prezzo').val(parseFloat(prezzoBase).toFixed(2));
+        } else {
+            $('#new_prezzo').val('');
+        }
+    }
+
+    // 5. RENDERING TABELLA E AZIONI
+    function renderTabella() {
+        
+        let totGen = 0;
+        let totCartoni = 0;
+        let clientiSet = new Set();
+
+        // 1. Pulisce la tabella PRIMA del ciclo
+        tabella.clear();
+
+        // 2. Ciclo sui dati (se vuoto, non fa nulla qui)
+        righeAttuali.forEach((r, index) => {
+            let totRiga = r.qta * r.prezzo;
+            totGen += totRiga;
+            totCartoni += r.qta;
+            if(r.cliente_id) clientiSet.add(r.cliente_id);
+
+            let opzC = $('#select_cliente option[value="' + r.cliente_id + '"]');
+            let opzP = $('#select_prodotto option[value="' + r.prod_id + '"]');
+            
+            if (opzC.length > 0 && opzP.length > 0) {
+                let inputPrezzo = `<input type="number" 
+                                    id="prezzo_${index}" 
+                                    name="prezzo_riga_${index}" 
+                                    aria-label="Prezzo del prodotto"
+                                    class="form-control text-center" 
+                                    style="width:100px;" 
+                                    value="${r.prezzo.toFixed(2)}" 
+                                    step="0.01" 
+                                    onchange="updateRiga(${index}, 'prezzo', this.value)">`;
+            
+                let btnElimina = `<button onclick="rimuoviRiga(${index})" 
+                                    class="btn-rimuoviRiga"
+                                    aria-label="Elimina riga">
+                                    🗑️ Elimina
+                                </button>`;
+                
+                let cellaQta = generaHtmlQta(r.qta, index);
+
+                tabella.row.add([
+                    '<span data-id="' + r.cliente_id + '">' + opzC.text() + '</span>',
+                    '<span data-id="' + r.prod_id + '">' + opzP.text() + '</span>',
+                    cellaQta,
+                    inputPrezzo,
+                    '€ '+totRiga.toFixed(2),
+                    btnElimina
+                ]);
+            } else {
+                // Fallback per dati sporchi (opzionale)
+                tabella.row.add([
+                    r.cliente_nome || "???",
+                    r.prod_nome || "???",
+                    generaHtmlQta(r.qta, index),
+                    `€ ${r.prezzo.toFixed(2)}`,
+                    `€ ${totRiga.toFixed(2)}`,
+                    `<button onclick="rimuoviRiga(${index})" class="btn-rimuoviRiga">🗑️</button>`
+                ]);
+            }
+        });
+        
+        // 3. Disegna la tabella e aggiorna i totali FUORI dal ciclo
+        // Così funziona anche se ci sono 0 righe!
+        tabella.draw();
+        
+        $('#tot-clienti').text(clientiSet.size);
+        $('#tot-cartoni').text(totCartoni);
+        aggiornaStatoBottone();
+        aggiornaTotaliVisivi();
+        $('#totale-generale').text('€ ' + totGen.toFixed(2));
+    }
+
+    function aggiornaStatoBottone() {
+        if(!tabella) return;
+        var numeroRighe = tabella.rows().count();
+        var btn = $('#btn_conferma');
+        if (numeroRighe > 0) { btn.prop('disabled', false).css({'opacity': '1', 'cursor': 'pointer'}); } 
+        else { btn.prop('disabled', true).css({'opacity': '0.5', 'cursor': 'not-allowed'}); }
+    }
+
+    // --- FUNZIONE TOTALI ---
+    function aggiornaTotaliVisivi() {
+        if (!tabella) return;
+        var totaleCartoni = 0;
+        var clientiUnici = new Set();
+        tabella.rows().data().each(function (value) {
+            let qta = parseInt($(value[2]).find('.qty-val').text());
+            if (!isNaN(qta)) totaleCartoni += qta;
+            let idCliente = $(value[0]).data('id');
+            if (idCliente) clientiUnici.add(idCliente);
+        });
+        $('#tot-clienti').text(clientiUnici.size);
+        $('#tot-cartoni').text(totaleCartoni);
+    }
+
+    function generaHtmlQta(qta, index) {
+        let disabled = (qta <= 1) ? 'disabled' : '';
+        return `<div class="qty-control" style="display:flex; align-items:center; justify-content:center;">
+                    <span class="qty-val" style="margin-right:10px; font-weight:bold;">${qta}</span>
+                    <div class="qty-buttons">
+                        <button onclick="cambiaQta(${index}, -1)" class="btn-qty btn-minus" ${disabled} style="width:25px;" aria-label="Diminuisci quantità">-</button>
+                        <button onclick="cambiaQta(${index}, 1)" class="btn-qty btn-plus" style="width:25px;" aria-label="Aumenta quantità">+</button>
+                    </div>
+                </div>`;
+    }
+
+    function cambiaQta(index, delta) {
+        let nuovaQta = righeAttuali[index].qta + delta;
+        if (nuovaQta < 1) return;
+        
+        righeAttuali[index].qta = nuovaQta; // Aggiorno la fonte dati
+        renderTabella(); // Ridisegno tutto coerentemente
+    }
+
+    function mostraErroreCampo(idCampo) {
+        let campo = $(idCampo);
+        campo.addClass('error-highlight');
+        if (campo.hasClass('select2-box')) { campo.next('.select2-container').find('.select2-selection').css({'border': '2px solid #e74c3c', 'background-color': '#fce4e4'}); }
+        campo.one('focus input change select2:open', function() {
+            $(this).removeClass('error-highlight');
+            if ($(this).hasClass('select2-box')) { $(this).next('.select2-container').find('.select2-selection').css({'border': '', 'background-color': ''}); }
+        });
+    }
+
+    function updateRiga(index, field, value) {
+        //console.log('Update riga ', index, field, value);
+        righeAttuali[index][field] = parseFloat(value) || 0;
+        renderTabella(); 
+    }
+
+    function rimuoviRiga(index) {
+        Swal.fire({
+            title: 'Rimuovere?', text: "Il prodotto verrà eliminato dall'ordine.", icon: 'warning', showCancelButton: true
+        }).then((result) => {
+            if(result.isConfirmed) {
+                righeAttuali.splice(index, 1);
+                renderTabella();
+            }
+        });
+    }
+
+    function aggiungiRiga() {
+        let cliId = $('#select_cliente').val();
+        let cliNome = $('#select_cliente option:selected').text();
+        let prodId = $('#select_prodotto').val();
+        let prodNome = $('#select_prodotto option:selected').text(); 
+        let qta = parseFloat($('#new_qta').val());
+        let prezzo = parseFloat($('#new_prezzo').val());
+        
+        let errore = false;
+        if (!cliId) { mostraErroreCampo('#select_cliente'); errore = true; }
+        if (!prodId) { mostraErroreCampo('#select_prodotto'); errore = true; }
+        if (!qta || qta < 1) { mostraErroreCampo('#new_qta'); errore = true; }
+
+        if(errore) { 
+            Swal.fire('Attenzione', 'Seleziona Cliente, Prodotto e Quantità >= 1', 'warning');
+            return; 
+        }
+        if(isNaN(prezzo)) prezzo = 0.00;
+
+        // Controllo duplicati
+        var duplicato = false;
+        tabella.rows().every(function () {
+            var d = this.data();
+            var rowNode = this.node(); // Questo è l'elemento <tr>
+            
+            // Nota: d[0] e d[1] contengono l'HTML <span>, quindi estraiamo il data-id con jQuery
+            let currCId = $(d[0]).data('id');
+            let currPId = $(d[1]).data('id');
+
+            if (String(currCId) === String(cliId) && String(currPId) === String(prodId)) { 
+                duplicato = true; 
+                
+                // EVIDENZIAMO LA RIGA
+                $(rowNode).addClass('flash-error');
+
+                // 2. SCROLLIAMO FINO ALLA RIGA
+                // 'center' mette la riga esattamente al centro dello schermo
+                rowNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Rimuoviamo l'evidenziazione dopo 3 secondi
+                setTimeout(function() {
+                    $(rowNode).removeClass('flash-error');
+                }, 3000);
+
+                return false; // Interrompe il ciclo (abbiamo trovato il duplicato)
+            }
+        });
+
+        if (duplicato) { //se trovo una riga duplicata
+            Swal.fire({
+                icon: 'warning',
+                title: 'Attenzione!',
+                text: '⚠️ Riga già presente!',
+                returnFocus: false
+            });
+            $('#new_qta').val(1);
+            $('#select_prodotto').val(null).trigger('change');
+            return;
+        }
+
+        // Aggiungi in cima alla lista (non graficamente, ma nei dati)
+        righeAttuali.unshift({
+            cliente_id: parseInt(cliId),
+            cliente_nome: cliNome,
+            prod_id: parseInt(prodId),
+            prod_nome: prodNome,
+            qta: qta,
+            prezzo: prezzo
+        });
+        
+        //ridisegno tabella graficamente
+        renderTabella();
+
+        // Highlight nuova riga
+        // Cerchiamo la riga appena aggiunta basandoci sugli ID
+        setTimeout(function() {
+            $('#tabella-modifica tbody tr').each(function() {
+                var row = $(this);
+                // Cerchiamo dentro le celle gli span con data-id
+                var foundCliId = row.find('td:eq(0) span').data('id');
+                var foundProdId = row.find('td:eq(1) span').data('id');
+
+                // Se troviamo la corrispondenza esatta
+                if (String(foundCliId) === String(cliId) && String(foundProdId) === String(prodId)) {
+                    
+                    // 1. Scrolliamo fino alla riga (utile se è finita fuori schermo)
+                    this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // 2. Applichiamo il flash verde
+                    row.addClass('highlight-new-row');
+                    
+                    // 3. Rimuoviamo dopo 4 secondi
+                    setTimeout(function() {
+                        row.removeClass('highlight-new-row');
+                    }, 4000);
+                    
+                    return false; // Interrompiamo il ciclo each
+                }
+            });
+        }, 100); // 100ms per dare tempo a DataTables di finire il draw
+        
+        // Reset campi dopo inserimento
+        $('#new_qta').val(1);
+        $('#select_prodotto').val(null).trigger('change');
+        // Non resetto il cliente perché spesso si aggiungono più cose per lo stesso cliente
+    }
+
+    function salvaModifiche() {
+
+        let note = $('#note_ordine').val();
+
+        // ORDINE VUOTO
+        if (righeAttuali.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Ordine Vuoto!',
+                text: 'Non puoi salvare un ordine senza prodotti. Se vuoi eliminarlo, usa il tasto "Elimina" nello storico.',
+                confirmButtonColor: '#d33'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Confermi Modifiche?',
+            text: "I dati dello storico verranno sovrascritti!",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sì, Salva'
+        }).then((res) => {
+            if(res.isConfirmed) {
+                fetch('/api/salva_modifica_ordine', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        ordine_id: parseInt('{{ ordine.id }}'),
+                        righe: righeAttuali,
+                        note: note
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.success) {
+                        Swal.fire('Salvato!', 'Ordine aggiornato con successo.', 'success')
+                        .then(() => window.location.href = '/storico?tab=registro_ordini');
+                    } else {
+                        Swal.fire('Errore', data.error, 'error')
+                        .then(() => window.location.href = '/storico?tab=registro_ordini');
+                    }
+                });
+            }
+        });
+    }
+
+</script>
+{% endblock %}

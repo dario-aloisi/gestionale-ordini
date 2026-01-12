@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>
+        👥 Gestione Clienti
+        <span class="badge-count" title="Totale Clienti registrati">{{ clienti|length }}</span>
+    </h1>
+    <button class="btn-home" 
+        data-url="{{ url_for('home') }}" 
+        onclick="window.location.href=this.dataset.url">
+        Home
+    </button>
+</div>
+
+<div class="card">
+    <h2>Aggiungi Nuovo Cliente</h2>
+    
+    <form action="{{ url_for('aggiungi_cliente') }}" method="POST" class="form-row">
+        
+        <div class="form-group">
+            <label for="codice">Codice Cliente (Es. 100)</label>
+            <input type="number" id="codice" name="codice" placeholder="Es. 1518" min="1" step="1" required>
+        </div>
+
+        <div class="form-group flex-grow-2">
+            <label for="nome">Ragione Sociale / Nome</label>
+            <input type="text" id="nome" name="nome" placeholder="Es. Testai" required>
+        </div>
+
+        <div class="form-group flex-grow-2">
+            <label for="note">Note aggiuntive</label>
+            <input type="text" id="note" name="note" placeholder="Es. Chiuso Lunedì, scarico sul retro...">
+        </div>
+        
+        <div class="form-group flex-no-grow btn-container-bottom">
+            <button type="button" class="btn-add" onclick="confermaAggiunta(this)">
+                + Aggiungi
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<hr class="separator-line">
+
+<table id="tabellaClienti" class="data-table display">
+    <thead>
+        <tr>
+            <th style="width: 8%;">Codice</th>
+            <th style="width: 22%;">Cliente</th>
+            <th style="width: 47%;">Note</th>
+            <th style="width: 23%;">Azioni</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in clienti %}
+        <tr id="row-{{ c.codice }}">
+            <td><strong>{{ c.codice }}</strong></td>
+            <td>{{ c.nome }}</td>
+            <td><small>{{ c.note }}</small></td>
+            <td>
+                <a href="{{ url_for('modifica_cliente', id_cliente=c.id) }}" 
+                   class="action-link link-edit"
+                   onclick="vaiAModifica(event, this.href)">
+                   ✏️ Modifica
+                </a>
+
+                <a href="{{ url_for('elimina_cliente', id_cliente=c.id) }}" 
+                   onclick="eliminaCliente(event, '{{ c.id }}')"
+                   class="action-link link-delete">
+                   🗑️ Elimina
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    $(document).ready(function() {
+
+        var table = $('#tabellaClienti').DataTable({
+            // 1. Impostazioni Lingua
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/it-IT.json",
+                "emptyTable": "Nessun cliente inserito. Aggiungine uno sopra!👆"
+            },
+            
+            // 2. Default righe mostrate (tutte)
+            "pageLength": -1,
+
+            // 3. Menu opzioni "Mostra X voci"
+            "lengthMenu": [ [1, 10, 25, 50, 100, 1000, -1], [1, 10, 25, 50, 100, 1000, "Tutti"] ],
+
+            // 4. Disposizione Elementi
+            "dom": '<"top-controls"fl>rtip',
+
+            "initComplete": function(settings, json) {
+                // --- FIX LABEL CERCA E INPUT (Elimina i warning gialli) ---
+                // 1. Troviamo l'input generato da DataTables
+                var inputSearch = $('#tabellaClienti_filter input');
+                
+                // 2. Gli diamo ID e Name unici
+                inputSearch.attr('id', 'dt_search_field');
+                inputSearch.attr('name', 'dt_search_field');
+                
+                // 3. Troviamo la label generata e le diciamo "tu servi per l'input con id dt_search_field"
+                var labelSearch = $('#tabellaClienti_filter label');
+                labelSearch.attr('for', 'dt_search_field');
+            }
+        });
+
+        // --- LOGICA EVIDENZIAZIONE NUOVO INSERIMENTO ---
+        // 1. Leggiamo se c'è un nuovo codice nell'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const newCode = urlParams.get('new_code');
+
+        if (newCode) {
+            // Costruiamo l'ID della riga (es. #row-100)
+            var rowId = '#row-' + newCode;
+
+            // Chiediamo a DataTables di trovare questa riga nei suoi dati interni
+            // (Funziona anche se la riga è a pagina 5 e non è visibile)
+            var dtRow = table.row(rowId);
+
+            if (dtRow.length) { // Se la riga esiste nel DB della tabella
+                
+                // A. Calcoliamo a che pagina si trova
+                var rowIndex = dtRow.index();
+                var pageInfo = table.page.info();
+                var pageNumber = Math.floor(rowIndex / pageInfo.length);
+
+                // B. Spostiamo la tabella a quella pagina
+                table.page(pageNumber).draw('page');
+
+                // C. Aspettiamo un attimo che il browser disegni la nuova pagina
+                setTimeout(function() {
+                    var htmlRow = $(rowId); // Ora l'elemento HTML esiste sicuro
+                    
+                    if (htmlRow.length) {
+                        // Scroll
+                        htmlRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Evidenziazione
+                        htmlRow.addClass('highlight-new-row');
+                        
+                        // Rimuovi dopo 3 secondi
+                        setTimeout(function() {
+                            htmlRow.removeClass('highlight-new-row');
+                        }, 3000);
+                    }
+                }, 100); // 100ms di ritardo tecnico
+            }
+        }
+        
+        // Pulizia URL (per non ri-triggerare se aggiorni)
+        if (newCode) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+    });
+
+    function confermaAggiunta(btn) {
+        var form = btn.closest('form');
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        Swal.fire({
+            title: 'Aggiungere nuovo cliente?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#27ae60',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, salva',
+            cancelButtonText: 'Annulla'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    }
+
+    function vaiAModifica(event, url) {
+        event.preventDefault(); // Blocca il link
+
+        Swal.fire({
+            title: 'Modificare questo cliente?',
+            text: "Verrai spostato nella pagina di modifica.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#f39c12', // Arancione
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, vai alla modifica',
+            cancelButtonText: 'Resta qui'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url; // Va alla pagina
+            }
+        });
+    }
+
+    function eliminaCliente(event, idCliente) {
+        event.preventDefault(); // Blocca subito il link classico
+        
+        // Recuperiamo l'URL dal link cliccato
+        var urlEliminazione = event.currentTarget.href;
+
+        Swal.fire({
+            title: 'Sei sicuro?',
+            text: "Vuoi eliminare questo cliente? L'azione NON è reversibile!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33', // Rosso
+            cancelButtonColor: '#3085d6', // Blu
+            confirmButtonText: 'Sì, elimina!',
+            cancelButtonText: 'Annulla'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // PULIZIA MEMORIA BROWSER (Codice vecchio che avevamo fatto)
+                try {
+                    var bozzaSalvata = localStorage.getItem('bozza_ordine_papa');
+                    if (bozzaSalvata) {
+                        var bozza = JSON.parse(bozzaSalvata);
+                        
+                        if (bozza.righe && bozza.righe.length > 0) {
+                            var righePulite = bozza.righe.filter(r => r.cliente_id != idCliente);
+                            bozza.righe = righePulite;
+                            localStorage.setItem('bozza_ordine_papa', JSON.stringify(bozza));
+                        }
+                    }
+                } catch (e) {}
+                
+                // PROCEDI CON L'ELIMINAZIONE REALE
+                window.location.href = urlEliminazione;
+            }
+        })
+    }
+</script>
+
+{% endblock %}

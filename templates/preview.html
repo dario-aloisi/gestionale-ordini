@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="preview-header">
+    <div class="header-side"></div>
+
+    <div class="header-center">
+        <h2>👁️ Anteprima PDF: {{ filename.replace('preview_ordini', 'ordini') }}</h2>
+        <h3>Controlla i dati. Se è tutto ok, procedi all'invio in basso.</h3>
+    </div>
+
+    <div class="header-side right-align">
+        <button class="btn-home" 
+            data-url="{{ url_for('home') }}" 
+            onclick="window.location.href=this.dataset.url">
+            Home
+        </button>
+    </div>
+</div>
+
+<div class="card card-pdf-preview">
+    <embed src="{{ url_for('static', filename='temp/' + filename) }}#view=FitH&toolbar=1&navpanes=0&scrollbar=1" 
+           type="application/pdf" 
+           class="pdf-embed">
+</div>
+
+<div id="action-buttons" class="action-buttons-container">
+
+    <button onclick="inviaTutto()" class="btn-send">
+        📤 SALVA E INVIA ALL'AZIENDA
+    </button>
+    
+    <button type="button" 
+        class="btn-cancel" 
+        data-url="{{ url_for('crea_ordine') }}" 
+        onclick="window.location.href = this.dataset.url">
+        ✏️ No, devo modificare
+    </button>
+
+</div>
+
+<div id="loading-box" class="feedback-box feedback-loading" style="display:none;">
+    <div class="icon-large">⏳</div>
+    <h3>Invio in corso...</h3>
+    <p>Sto salvando il file e contattando il server di posta. Attendi un attimo.</p>
+</div>
+
+<div id="success-box" class="feedback-box feedback-success" style="display:none;">
+    <div class="icon-large">✅</div>
+    <h2 class="text-success">Ordine Inviato con Successo!</h2>
+    <p>Il file è stato salvato nel PC ed è stata inviata la mail all'azienda.</p>
+    
+    <div class="success-buttons" style="flex-wrap: wrap; justify-content: center; gap: 15px;">
+        
+        <button id="btn-final-excel" onclick="generaExcelFinale()" class="btn-excel" style="display:none;">
+            📊 Scarica Excel Ordine
+        </button>
+
+        <button onclick="confermaYahoo()" class="btn-home btn-yahoo">
+            📧 Controlla Posta Inviata (Yahoo)
+        </button>
+
+        <button onclick="confermaHome()" class="btn-home btn-home-blue">
+            🏠 Torna alla Home
+        </button>
+
+    </div>
+</div>
+
+<div id="error-box" class="feedback-box feedback-error" style="display:none;">
+    <div class="icon-large">❌</div>
+    <h3 class="text-error">C'è stato un problema</h3>
+    <p id="error-msg" class="text-mono">Dettaglio errore...</p>
+    
+    <button data-url="{{ url_for('crea_ordine') }}" onclick="window.location.href = this.getAttribute('data-url')" class="btn-retry" id="riprova-errore-sessione" >Riprova</button>
+</div>
+
+<script>
+    // Variabile globale per salvare l'ID appena creato
+    var idOrdineAppenaCreato = null;
+
+    function inviaTutto() {
+        // Conferma con SweetAlert invece del confirm nativo
+        Swal.fire({
+            title: 'Sei sicuro?',
+            text: "Sto per salvare l'ordine e inviare la mail.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#27ae60',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, Invia!',
+            cancelButtonText: 'Aspetta'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                // 1. UI: Nascondi bottoni, mostra Loading
+                $('#action-buttons').hide();
+                var loadingBox = $('#loading-box');
+                loadingBox.show();
+                
+                // Scroll automatico verso il basso
+                loadingBox[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // 2. Chiamata al Server
+                var filename = "{{ filename }}"; 
+
+                fetch('/invia_definitivo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename: filename })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    $('#loading-box').hide();
+
+                    if (data.status === "OK") {
+                        // 3a. SUCCESSO
+                        var successBox = $('#success-box');
+                        successBox.show();
+                        successBox[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                        localStorage.removeItem('bozza_ordine_papa');
+                        // --- Salviamo l'ID e mostriamo il bottone Excel ---
+                        // console.log("ID RICEVUTO DAL SERVER:", data.id_ordine); // Debug
+                        idOrdineAppenaCreato = data.id_ordine; 
+                        
+                        if(idOrdineAppenaCreato) {
+                            $('#btn-final-excel').show();
+                        } else {
+                            console.log(data);
+                            console.error("ERRORE: ID Ordine nullo ricevuto dal server!");
+                        }
+
+                    } else {
+                        // 3b. ERRORE GESTITO
+                        var errorBox = $('#error-box');
+                        errorBox.show();
+                        $('#error-msg').text(data.errore || "Errore sconosciuto.");
+                        $('#action-buttons').show();
+                        errorBox[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                })
+                .catch(err => {
+                    // 3c. ERRORE DI RETE
+                    $('#loading-box').hide();
+                    $('#error-box').show();
+                    $('#error-msg').text("Errore di connessione: " + err);
+                    $('#action-buttons').show();
+                });
+            }
+        });
+    }
+
+    // FUNZIONE PER SCARICARE EXCEL DOPO L'INVIO
+    function generaExcelFinale() {
+        if (!idOrdineAppenaCreato) return;
+
+        // 1. Chiediamo Conferma
+        Swal.fire({
+            title: 'Generare file Excel?',
+            text: "Il file verrà salvato nella cartella ARCHIVIO_EXCEL.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#217346', // Verde Excel Ufficiale
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, salva Excel',
+            cancelButtonText: 'Annulla'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                // 2. Feedback Caricamento
+                Swal.fire({
+                    title: 'Creazione Excel...',
+                    text: 'Sto generando e salvando il file...',
+                    didOpen: () => { Swal.showLoading() }
+                });
+
+                // 3. Chiamata al Server
+                fetch('/scarica_ordine_excel/' + idOrdineAppenaCreato)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === "OK") {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Excel Salvato!',
+                            html: 'Trovi il file in:<br>' + '<b>ARCHIVIO_EXCEL/' + d.filename + '</b>',
+                            confirmButtonColor: '#217346'
+                        });
+                    } else {
+                        Swal.fire('Errore', d.errore, 'error');
+                    }
+                })
+                .catch(e => Swal.fire('Errore', 'Impossibile contattare il server', 'error'));
+            }
+        });
+    }
+
+    // Funzione Conferma YAHOO
+    function confermaYahoo() {
+        Swal.fire({
+            title: 'Aprire Yahoo Mail?',
+            text: "Si aprirà una nuova scheda del browser sulla posta inviata.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#e97aec', // Viola Yahoo
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, apri',
+            cancelButtonText: 'Resta qui'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Apre il link in una nuova scheda (_blank)
+                window.open("https://mail.yahoo.com/b/folders/2?.src=ym&reason=unexpected_ymv&folderType=SENT", "_blank");
+            }
+        });
+    }
+
+    // Funzione Conferma HOME
+    function confermaHome() {
+        Swal.fire({
+            title: 'Tornare alla Home?',
+            text: "Hai finito con questo ordine?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#5cbfff', // Blu Home
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, torna alla Home',
+            cancelButtonText: 'Resta qui'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Reindirizza alla Home
+                window.location.href = "{{ url_for('home') }}";
+            }
+        });
+    }
+
+</script>
+
+{% endblock %}

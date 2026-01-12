@@ -1,0 +1,1632 @@
+/* ==========================================================================
+   0. BASE.HTML
+   ========================================================================== */
+
+/* Spaziatura contenuto principale */
+.container.main-content {
+    margin-top: 20px;
+}
+
+/* Div nascosto per i dati flash (per sicurezza estrema visiva) */
+#flash-data {
+    display: none;
+}
+
+/* ==========================================================================
+   1. LAYOUT GENERALE E HOME
+   ========================================================================== */
+
+/* Blocca lo scroll della pagina quando il modale è aperto */
+body.no-scroll {
+    overflow: hidden !important;
+}
+
+/* Titolo Header */
+header h1 {
+    text-align: center;
+}
+
+/* Link Menu Home */
+.home-menu a {
+    font-size: 1.4rem;
+}
+
+.btn-home {
+    text-decoration: none !important;
+    color: black !important;
+    padding: 12px 25px !important;
+    background-color: #aeb2b3;
+    font-size: 1.2rem !important;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-home:hover {
+    background-color: #8a8c8d;
+    transform: translateY(-3px);
+}
+
+.btn-home.active {
+    background-color: #7f8c8d;
+    color: white !important;
+}
+
+.btn-home.active:hover {
+    background-color: #6c7071;
+    transform: translateY(-3px);
+}
+
+.btn-home:active {
+    color: white !important;
+}
+
+/* Stile per i box bianchi (Card) */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    /* 0 0 = Ombra centrata (non scende giù) */
+    /* 15px = Raggio sfocatura (si espande in tutte le direzioni) */
+    /* rgba(0,0,0,0.15) = Colore nero al 15% di opacità */
+    box-shadow: 0 0 15px rgba(0,0,0,0.15) !important;
+    margin-bottom: 20px;
+}
+
+/* Card Dashboard Home */
+.card-dashboard {
+    width: 200px;
+    height: 140px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    
+    /* Ombra base (piatta) */
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    
+    /* Transizione fluida su movimento E ombra */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default; /* O pointer se vuoi che sembrino cliccabili */
+}
+
+.card-dashboard:hover {
+    /* Si alza di 8 pixel */
+    transform: translateY(-8px);
+    
+    /* Ombra Hover */
+    box-shadow: 0 5px 40px rgba(0,0,0,0.3) !important;
+}
+
+.dash-icon { font-size: 3.5rem; margin-bottom: 10px; }
+.dash-num  { font-size: 2.5rem; font-weight: 800; line-height: 1; margin-bottom: 5px; color: #2c3e50; }
+.dash-text { font-size: 1.1rem; color: #353b3b; font-weight: 600; }
+
+/* GRIGLIA MENU HOME */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Si adatta allo schermo */
+    gap: 25px;
+    margin-top: 20px;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.menu-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    background: white;
+    border-radius: 12px;
+    text-decoration: none;
+    /* Ombra base (piatta) */
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-bottom: 6px solid transparent; /* Linea colorata sotto */
+}
+
+.menu-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 5px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+.menu-icon { font-size: 3rem; margin-bottom: 15px; }
+.menu-title { font-size: 1.4rem; font-weight: 800; color: #2c3e50; margin-bottom: 5px; }
+.menu-desc { font-size: 1.1rem; color: #000000; }
+
+/* Colori specifici */
+.card-green { border-bottom-color: #27ae60; }
+.card-green .menu-icon { color: #27ae60; }
+
+.card-blue { border-bottom-color: #3498db; }
+.card-blue .menu-icon { color: #3498db; }
+
+.card-orange { border-bottom-color: #e67e22; }
+.card-orange .menu-icon { color: #e67e22; }
+
+.card-purple { border-bottom-color: #9b59b6; }
+.card-purple .menu-icon { color: #9b59b6; }
+
+/* Badge per i conteggi nei titoli H1 */
+.badge-count {
+    display: inline-block;
+    background-color: #e9ecef;      /* Grigio molto chiaro */
+    color: black;
+    font-size: 1.4rem;                /* Un po' più piccolo del titolo */
+    font-weight: 800;               /* Bello grassetto */
+    padding: 5px 15px;              /* Spaziatura interna */
+    border-radius: 50px;            /* Arrotondamento a pillola */
+    margin-left: 5px;              /* Stacco dal testo */
+    margin-bottom: 4px;
+    vertical-align: middle;         /* Allineato al centro del testo */
+    border: 1px solid #ced4da;      /* Bordino sottile elegante */
+    box-shadow: 0 0 5px rgba(0,0,0,0.15); /* Ombretta leggera */
+}
+
+/* ==========================================================================
+   STILE TASTONE BACKUP (HOME)
+   ========================================================================== */
+
+.backup-container-large {
+    /*margin-top: 50px;      /* Ben staccato dal menu */
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: center; /* Centrato nella pagina */
+}
+
+.btn-backup-large {
+    background-color: #2c3e50; /* Blu Notte Scuro (Serio/Sicuro) */
+    color: white;
+    text-decoration: none;
+    
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    
+    padding: 20px 40px;
+    border-radius: 12px;
+    
+    box-shadow: 0 0px 15px rgba(44, 62, 80, 0.3); /* Ombra elegante */
+    transition: all 0.3s ease;
+    
+    width: 100%;
+    max-width: 500px; /* Non diventa troppo largo su schermi giganti */
+}
+
+/* Effetto Hover */
+.btn-backup-large:hover {
+    background-color: #34495e; /* Leggermente più chiaro */
+    transform: translateY(-8px);
+    box-shadow: 0 5px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Icona Floppy */
+.backup-icon {
+    font-size: 3rem;
+}
+
+/* Testi */
+.backup-text-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.backup-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.backup-desc {
+    font-size: 0.95rem;
+    color: #bdc3c7; /* Grigio chiaro */
+    font-weight: normal;
+    margin-top: 2px;
+}
+
+/* ==========================================================================
+   2. TABELLE (DATATABLES)
+   ========================================================================== */
+
+/* Stile Tabella Dati */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px; /* Arrotonda gli angoli */
+    overflow: hidden;   /* Nasconde gli spigoli vivi */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    
+    /* Font size specifico tabella */
+    font-size: 1.2rem !important; 
+}
+
+.data-table th, .data-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    
+    /* Celle più ariose (da regole successive) */
+    padding: 18px 15px !important; 
+    vertical-align: middle !important; 
+}
+
+.data-table th {
+    background-color: #2c3e50;
+    color: white;
+    
+    /* Intestazione grande */
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+}
+
+.data-table tr:hover {
+    background-color: #f1f1f1; /* Effetto hover sulle righe */
+}
+
+/* Griglia Marcata */
+table.dataTable thead th, 
+table.dataTable tbody td {
+    border: 2px solid #bdc3c7 !important; /* Grigio scuro/argento */
+}
+
+/* Colore specifico per l'intestazione per staccare */
+table.dataTable thead th {
+    border-bottom: 2px solid #2c3e50 !important; 
+}
+
+/* Link Azioni (Matita/Cestino) */
+table.dataTable tbody td a {
+    font-size: 1.1rem !important;
+    margin-right: 20px; 
+    display: inline-block; 
+    padding: 5px; 
+}
+
+/* Evidenziazione Nuova Riga */
+.highlight-new-row {
+    background-color: #d4edda !important; 
+    transition: background-color 1.5s ease-out; 
+}
+
+
+/* --- PERSONALIZZAZIONE CONTROLLI DATATABLES --- */
+
+.dataTables_wrapper {
+    margin-top: 20px; 
+}
+
+/* Search a sinistra, Length a destra */
+.dataTables_wrapper .dataTables_filter {
+    float: left !important; 
+    text-align: left !important;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: right !important; 
+}
+
+.dataTables_wrapper .dataTables_length label{
+    font-size: 1.1rem !important;
+}
+
+/* Input Search */
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    margin-left: 10px !important;
+}
+
+.dataTables_wrapper .dataTables_filter label {
+    font-size: 20px;
+}
+
+/* Distanza Tabella dai controlli */
+.dataTables_wrapper .dataTables_filter, 
+.dataTables_wrapper .dataTables_length {
+    margin-bottom: 5px !important;
+    padding-bottom: 5px;
+}
+
+/* Paginazione */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    font-weight: bold !important;
+    color: #2c3e50 !important;
+    border-radius: 4px !important;
+    border: 1px solid transparent !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #ecf0f1 !important; 
+    color: black !important;
+    border: 1px solid #95a5a6 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #65a5cf !important; 
+    color: black !important;
+    font-weight: 800 !important; 
+    border: 1px solid #2980b9 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
+    opacity: 0.6 !important;
+    font-weight: normal !important;
+    cursor: not-allowed !important;
+    background: transparent !important;
+    border: none !important;
+    color: #95a5a6 !important;
+}
+
+/* Frecce Ordinamento */
+table.dataTable thead th, 
+table.dataTable thead td {
+    padding-right: 10px !important; 
+    padding-left: 30px !important;  
+    background-position: left 8px center !important; 
+}
+
+/* Fix Float */
+table.dataTable {
+    clear: both !important;
+    margin-top: 0 !important; 
+}
+
+
+/* ==========================================================================
+   3. FORM E INPUT
+   ========================================================================== */
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap; 
+    align-items: flex-end; 
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column; 
+    min-width: 150px; 
+}
+
+label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    margin-bottom: 5px; 
+}
+
+/* Input Generici */
+input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+input:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* Input Giganti (dentro .card) */
+.card label {
+    font-size: 1.3rem !important; 
+    margin-bottom: 8px; 
+    color: #2c3e50;
+}
+
+.card input[type="text"], 
+.card input[type="number"], 
+.card textarea {
+    /*padding: 15px !important; */
+    font-size: 1.2rem !important; 
+    border: 2px solid #ccc !important; 
+    border-radius: 8px !important;
+    background-color: #fcfcfc; 
+}
+
+.card input:focus {
+    border-color: #3498db !important;
+    background-color: #fff;
+    box-shadow: 0 0 8px rgba(52, 152, 219, 0.4) !important;
+}
+
+/* Bottoni nei Form */
+.card button, .card a.btn-home {
+    font-size: 1.1rem !important;
+    padding: 12px 25px !important;
+}
+
+.card button:hover, .card a.btn-home:hover {
+    transform: translateY(-3px);
+    /*background-color: #8a8c8d !important;*/
+}
+
+/* Evidenziazione Errori */
+.error-highlight {
+    border: 2px solid #e74c3c !important; 
+    background-color: #fce4e4 !important; 
+    box-shadow: 0 0 5px rgba(231, 76, 60, 0.5); 
+    transition: all 0.3s ease;
+}
+
+.error-highlight + .select2-container .select2-selection {
+    border: 2px solid #e74c3c !important;
+    background-color: #fce4e4 !important;
+}
+
+
+/* ==========================================================================
+   4. SELECT2 (MENU A TENDINA)
+   ========================================================================== */
+
+.select2-container .select2-selection--single {
+    height: 50px !important; 
+    font-size: 1.1rem !important; 
+    display: flex;
+    border: 2px solid #ccc !important;
+    border-radius: 8px !important;
+    background-color: #fcfcfc;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 48px !important;
+    width: 30px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 45px !important; 
+    padding-left: 8px !important;
+    padding-right: 0px !important;
+    color: #2c3e50 !important;
+    font-weight: 600;
+}
+
+.select2-container--default .select2-results__option {
+    font-size: 1.1rem !important;
+    padding: 10px !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected]{
+    background-color: #3498db !important;
+    color: white !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] span{
+    color: white !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear {
+    margin-right: 3px !important;
+    padding-right: 0px !important;
+    margin-top: 2px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__clear:hover {
+    transform: translateY(0px);
+}
+
+#btn-link-analisi {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #3498db;
+    text-decoration: solid;
+    display: none;
+    margin-right: auto;
+    margin-bottom: 8px;
+}
+
+#btn-link-analisi:hover {
+    color: #21618c;
+    text-decoration: underline;
+    transform: translateY(-3px);
+}
+
+
+/* ==========================================================================
+   5. COMPONENTI CREA ORDINE E PDF
+   ========================================================================== */
+
+/* Controlli Quantità */
+.qty-control {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    width: 100%;
+    min-width: 100px; 
+}
+
+.qty-val {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #2c3e50;
+    padding-left: 10px;
+}
+
+.qty-buttons {
+    display: flex;
+    gap: 5px; 
+}
+
+.btn-qty {
+    width: 35px;
+    height: 35px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.btn-plus { background-color: #27ae60; }
+.btn-plus:hover { background-color: #219150; }
+
+.btn-minus { background-color: #e74c3c; }
+.btn-minus:hover { background-color: #c0392b; }
+.btn-minus:disabled {
+    background-color: #ecf0f1;
+    color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+/* Box Totali */
+.totali-box {
+    display: flex;
+    justify-content: flex-start; 
+    gap: 40px; 
+    margin-top: 15px;
+    padding: 15px 25px;
+    background-color: #f8f9fa; 
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.totale-item {
+    font-size: 1.3rem;
+    color: black;
+    font-weight: 600;
+}
+
+.totale-numero {
+    font-size: 1.5rem;
+    color: black;
+    font-weight: 800;
+    margin-left: 10px;
+}
+
+/* Stile Preview PDF (Toolbar e Container) */
+.btn-tool {
+    background-color: #34495e;
+    color: white;
+    border: 1px solid #7f8c8d;
+    padding: 5px 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+.btn-tool:hover { background-color: #1abc9c; border-color: #16a085; }
+
+.pdf-scroll-container {
+    overflow: auto; 
+    position: relative;
+    background-color: #525659; 
+    cursor: grab; 
+    user-select: none; 
+    -webkit-user-select: none; 
+    -moz-user-select: none; 
+}
+
+.pdf-scroll-container.grabbing { cursor: grabbing; }
+
+.pdf-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0; 
+    width: 100%;
+    height: 100%;
+    z-index: 10; 
+    background: transparent;
+    cursor: inherit;
+}
+
+.pdf-scroll-container::-webkit-scrollbar {
+    display: none; 
+}
+
+
+/* ==========================================================================
+   6. ALERTS E POPUP
+   ========================================================================== */
+
+/* Messaggi Flash classici */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+
+.alert-success {
+    background-color: #27ae60;
+    border-left: 5px solid #1e8449; 
+}
+
+.alert-error {
+    background-color: #e74c3c;
+    border-left: 5px solid #c0392b;
+}
+
+/* =======================================================
+   CUSTOMIZZAZIONE SWEETALERT2 - TOAST PERFETTI
+   ======================================================= */
+
+   div.swal2-popup.swal2-toast {
+    font-size: 1.5rem !important; 
+    width: auto !important; 
+    min-width: 400px !important; 
+    max-width: 900px !important; 
+    padding: 0.8em 1.5em !important; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important; 
+}
+
+/* Titolo dentro il Toast */
+div.swal2-popup.swal2-toast .swal2-title {
+    margin: 0 0 0 0.8em !important; /* Spazio a sinistra dell'icona */
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    font-size: 1.5rem !important;
+    text-align: left !important;
+}
+
+/* =======================================================
+   ICONA SUCCESS TOAST (SPUNTA VERDE) RICOSTRUITA
+   ======================================================= */
+
+/* 1. Il Cerchio del contenitore */
+div.swal2-popup.swal2-toast .swal2-icon {
+    margin: 0 !important;
+    border-width: 0.15em !important; /* Spessore cerchio */
+    border-color: #a5dc86 !important; /* Verde SweetAlert */
+    width: 3.2em !important;        
+    height: 3.2em !important;
+    min-width: 3.2em !important;
+    background-color: transparent !important;
+    
+    /* Centra il contenuto (la nuova spunta) */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* 2. Nascondiamo TUTTI gli elementi originali di SweetAlert 
+      (Anelli, stanghette vecchie, fixers, ecc.) che rompono il layout */
+div.swal2-popup.swal2-toast .swal2-success-ring,
+div.swal2-popup.swal2-toast .swal2-success-fix,
+div.swal2-popup.swal2-toast .swal2-success-circular-line-left,
+div.swal2-popup.swal2-toast .swal2-success-circular-line-right,
+div.swal2-popup.swal2-toast .swal2-success-line-tip, 
+div.swal2-popup.swal2-toast .swal2-success-line-long {
+    display: none !important; 
+}
+
+/* 3. DISEGNIAMO UNA NUOVA SPUNTA PERFETTA */
+/* Usiamo ::after per creare una spunta CSS pura che si centra da sola */
+div.swal2-popup.swal2-toast .swal2-icon.swal2-success::after {
+    content: '';
+    display: block;
+    width: 0.9em;  /* Larghezza della spunta */
+    height: 1.6em; /* Altezza della spunta */
+    
+    /* Disegna la spunta usando i bordi */
+    border-right: 0.25em solid #a5dc86; 
+    border-bottom: 0.25em solid #a5dc86;
+    
+    /* La ruota di 45 gradi e la sposta leggermente su per centrarla otticamente */
+    transform: rotate(45deg) translate(-0.1em, -0.1em);
+    margin-top: -0.2em;
+}
+
+/* =========================================
+   STILE PER I POPUP NORMALI (Giganti)
+   Qui usiamo :not(.swal2-toast) per NON toccare i toast
+   ========================================= */
+
+.swal2-popup:not(.swal2-toast) .swal2-icon.swal2-error {
+    font-size: 2rem !important;
+    height: 5em !important;
+    width: 5em !important;
+}
+
+/* Ingrandisce l'icona SOLO nei popup normali */
+.swal2-popup:not(.swal2-toast) .swal2-icon {
+    font-size: 1.5rem !important;
+    width: 8em !important;       
+    height: 8em !important;      
+    margin: 2.5em auto .6em !important; 
+}
+
+/* Ingrandisce il contenuto SOLO nei popup normali */
+.swal2-popup:not(.swal2-toast) .swal2-icon-content {
+    font-size: 8rem !important; 
+}
+
+/* 1. PULIZIA GLOBALE: Nascondiamo TUTTI i pezzi originali di SweetAlert
+   (anelli, linee, fix, ecc.) sia per i Toast che per i Popup.
+   Così non c'è mai niente che "esce fuori" o si sovrappone. */
+.swal2-icon.swal2-success .swal2-success-ring,
+.swal2-icon.swal2-success .swal2-success-fix,
+.swal2-icon.swal2-success .swal2-success-circular-line-left,
+.swal2-icon.swal2-success .swal2-success-circular-line-right,
+.swal2-icon.swal2-success .swal2-success-line-tip, 
+.swal2-icon.swal2-success .swal2-success-line-long {
+    display: none !important; 
+}
+
+/* 2. STILE BASE COMUNE (Cerchio e Spunta) */
+.swal2-icon.swal2-success {
+    background-color: transparent !important;
+    border-color: #a5dc86 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: content-box !important; /* Importante per i bordi */
+}
+
+/* La "L" che diventerà la spunta */
+.swal2-icon.swal2-success::after {
+    content: '';
+    display: block;
+    border-right: solid #a5dc86;
+    /*background-color: #e3e3e3;*/
+    border-bottom: solid #a5dc86;
+    transform: rotate(45deg);
+}
+
+/* 3. DIMENSIONI E POSIZIONAMENTO DELLA SPUNTA NEI POPUP NORMALI */
+div.swal2-popup:not(.swal2-toast) .swal2-icon.swal2-success::after {
+    /* Spunta Grande */
+    width: 1.5em;    /* Larghezza stanghetta corta */
+    height: 3.0em;   /* Altezza stanghetta lunga */
+    border-width: 0.35em; /* Spessore linea */
+    
+    /* Aggiustamento ottico per centrarla nel cerchio grande */
+    margin-top: -1em; 
+    margin-left: 0.1em;
+    font-size: 2.2rem;
+}
+
+.swal2-html-container {
+    font-size: 1.3rem !important; 
+    font-weight: 500 !important;
+    color: black !important;
+}
+
+/* ==========================================================================
+   7. STATISTICHE
+   ========================================================================== */
+
+.tabs { 
+    overflow: hidden;
+    border-bottom: 1px solid #ccc;
+}
+
+.tab-link {
+    background-color: #f1f1f1; float: left; border: none; outline: none;
+    cursor: pointer; padding: 14px 20px; font-size: 1.1rem; transition: 0.3s;
+    border-radius: 8px 8px 0 0; margin-right: 5px; color: #555;
+}
+
+.tab-link:hover {
+    background-color: #ddd;
+}
+
+.tab-link.active {
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+}
+
+.tab-content {
+    animation: fadeEffect 0.5s;
+}
+
+@keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+/* ==========================================================================
+   AGGIUNTE REFACTORING (CLIENTI.HTML)
+   ========================================================================== */
+
+/* Header Pagina (Titolo + Bottone Indietro) */
+.page-header {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-bottom: 20px; /* Sostituisce il br br br */
+}
+
+/* Helper Flexbox per i Form */
+.flex-grow-2 { flex: 2; }
+.flex-no-grow { flex: 0; }
+
+/* Bottone Aggiungi allineato in basso */
+.btn-container-bottom {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.btn-add {
+    background-color: #27ae60 !important; /* Verde */
+    font-size: 1.2rem !important;
+    margin-top: auto !important;
+    height: 46px !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+}
+
+.btn-add:hover {
+    background-color: #219150 !important;
+    transform: translateY(-3px);
+}
+
+/* Linea separatrice */
+.separator-line {
+    margin: 30px 0;
+    border: 0;
+    border-top: 1px solid #ddd;
+}
+
+/* Link Tabella (Modifica/Elimina) */
+.action-link {
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.action-link:hover {
+    text-decoration: underline;
+}
+
+.link-edit {
+    color: orange;
+    margin-right: 15px;
+}
+
+.link-edit:hover {
+    color: rgb(204, 112, 0);
+    transform: translateY(-3px);
+}
+
+.link-delete {
+    color: red;
+}
+
+.link-delete:hover {
+    color: darkred;
+    transform: translateY(-3px);
+}
+
+/* ==========================================================================
+   AGGIUNTE REFACTORING (MODIFICA.HTML)
+   ========================================================================== */
+
+/* Header Card (Contiene titolo e bottone home all'interno della card) */
+.header-card .page-header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+/* Riga Bottoni Lunga */
+.flex-full {
+    width: 100%;
+    flex: 100%;
+}
+
+.btn-row {
+    margin-top: 20px;
+    flex-direction: row; /* I bottoni stanno in riga */
+    gap: 15px;
+    align-items: center;
+}
+
+/* Colori Bottoni Modifica */
+.btn-save {
+    background-color: #f39c12 !important; /* Arancione */
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.btn-save:hover {
+    background-color: #ce8613 !important;
+    transform: translateY(-3px);
+}
+
+.btn-reset {
+    background-color: #479483 !important; /* Verde Acqua scuro (era #34495e o simili nel tuo vecchio codice, ho messo un bel verde petrolio) */
+    /* Se preferisci il blu scuro di prima: background-color: #34495e !important; */
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.btn-reset:hover {
+    background-color: #377265 !important;
+}
+
+/* Bottone Annulla / Modifica (Grigio) */
+.btn-cancel {
+    background-color: #95a5a6 !important; /* Grigio cemento */
+    font-size: 1.1rem !important;
+    padding: 12px 25px !important;
+    border-radius: 8px !important;
+    text-decoration: none;
+    color: white;
+    cursor: pointer;
+    display: inline-block; /* Assicura che il padding funzioni anche su <a> */
+}
+
+.btn-cancel:hover {
+    background-color: #7f8c8d !important; /* Grigio più scuro */
+    transform: translateY(-3px);
+}
+
+/* ==========================================================================
+   AGGIUNTE REFACTORING (CREA_ORDINE.HTML)
+   ========================================================================== */
+
+#quantita {
+    padding: 12px !important;
+}
+
+#note_generali {
+    padding: 9px !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Card con bordo colorato a sinistra (Data) */
+.card-blue-border {
+    border-left: 5px solid #3498db !important;
+}
+
+/* Helper Flexbox */
+.flex-1 { flex: 1; }
+.flex-3 { flex: 3; }
+.flex-2 { flex: 2; }
+.flex-0 { flex: 0; }
+
+.min-200 { min-width: 200px; }
+.min-100 { min-width: 100px; }
+.width-100 { width: 100% !important; }
+.text-center { text-align: center; }
+
+/* Card Inserimento Riga (Grigia tratteggiata) */
+.card-dashed {
+    background-color: #ecf0f1 !important;
+    border: 2px dashed #bdc3c7 !important;
+}
+
+.card-title {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.flex-end-align {
+    align-items: flex-end;
+}
+
+/* Bottone Aggiungi Riga */
+.btn-add-row {
+    background-color: #27ae60 !important; /* Verde */
+    padding: 11px 20px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    /*border: none !important;*/
+}
+
+.btn-add-row:hover {
+    background-color: #219150 !important;
+    transform: translateY(-3px);
+}
+
+#btn_add_row {
+    padding: 11px 20px !important;
+    font-size: 1.1rem !important;
+}
+
+.btn-rimuoviRiga {
+    color: red;
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-weight:bold;
+    font-size: 1.1rem;
+}
+
+.btn-rimuoviRiga:hover {
+    color: darkred;
+    text-decoration: underline;
+    transform: translateY(-3px);
+}
+
+/* Footer Bottoni Finali */
+.footer-buttons {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-confirm {
+    background-color: #2980b9 !important; /* Blu scuro */
+    padding: 15px 30px !important;
+    font-size: 1.3rem !important;
+    border-radius: 8px !important;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-confirm:hover:enabled {
+    background-color: #21618c !important;
+    transform: translateY(-3px);
+}
+
+/*Svuota tutto*/
+.btn-clear {
+    background-color: #c0392b !important; /* Rosso */
+    padding: 15px 30px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-clear:hover {
+    background-color: #a93226 !important;
+    transform: translateY(-3px);
+}
+
+/* Effetto flash per riga duplicata */
+@keyframes flashRed {
+    0% { background-color: #f8d7da; }   /* Rosso errore chiaro */
+    50% { background-color: #f5c6cb; }  /* Rosso un po' più scuro */
+    100% { background-color: transparent; }
+}
+
+.flash-error {
+    animation: flashRed 2s ease-out;
+}
+
+/* Se la tabella ha righe alternate (striped), serve !important per sovrascrivere il grigio */
+table.dataTable tbody tr.flash-error {
+    background-color: #f8d7da !important; 
+    transition: background-color 2s ease-out;
+}
+
+/* STILI MODALE (Popup Aggiungi Veloce) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+    margin: 0;
+}
+
+.modal-footer {
+    margin-top: 20px !important;
+    text-align: right;
+}
+
+#form-add-prod > div {
+    margin-top: 5px;
+}
+
+#form-add-cli > div {
+    margin-top: 5px;
+}
+
+/* ==========================================================================
+   AGGIUNTE REFACTORING (HOME.HTML)
+   ========================================================================== */
+
+/* Header Home (con tasto a destra) */
+.home-header {
+    padding: 20px 40px; /* Era nel tuo style inline */
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.btn-shutdown {
+    background-color: rgb(211, 211, 211) !important; /* Grigio chiaro sfondo */
+    border: 2px solid #e74c3c !important; /* Bordo rosso */
+    color: #e74c3c !important; /* Testo rosso */
+    font-weight: bold;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    font-size: 1rem !important;
+    width: auto !important;
+    text-decoration: none !important;
+}
+
+.btn-shutdown:hover {
+    background-color: #d34637 !important;
+    color: white !important;
+    transform: translateY(-3px) !important;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    display: flex;
+    gap: 30px;
+    margin-top: 20rem;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Colori Bordi Dashboard */
+.border-blue   { border-left: 8px solid #3498db; }
+.border-orange { border-left: 8px solid #f39c12; }
+.border-green  { border-left: 8px solid #27ae60; }
+
+/* Colori Icone Dashboard */
+.color-blue   { color: #3498db; }
+.color-orange { color: #f39c12; }
+.color-green  { color: #27ae60; }
+
+
+/* Menu Principale (Home Menu) */
+
+/* Spaziatore che sostituisce i <br><br> */
+.spacer {
+    height: 30px; /* Equivalente a due <br> circa */
+}
+
+/* Sezione Backup */
+.backup-container {
+    margin-top: 25px; /* Era style inline */
+    border-top: 1px solid #ccc;
+    padding-top: 15px;
+    font-size: 1.4rem;
+}
+
+/* ==========================================================================
+   AGGIUNTE REFACTORING (PREVIEW.HTML)
+   ========================================================================== */
+
+/* Intestazione Preview */
+.preview-header {
+    display: flex;
+    justify-content: space-between; /* Distribuisce i 3 elementi */
+    align-items: center;            /* Centra verticalmente rispetto all'altezza */
+    margin-bottom: 20px;
+    padding: 10px 20px;             /* Un po' di aria dai bordi schermo */
+    background-color: transparent;
+}
+
+.header-center {
+    text-align: center;
+    flex-grow: 1; /* Il testo prende tutto lo spazio disponibile al centro */
+}
+
+/* I lati (Spaziatore e Bottone) devono avere la stessa larghezza base
+   per garantire che il testo centrale sia nel centro ESATTO della pagina */
+.header-side {
+    flex: 0 0 120px; /* Larghezza fissa per i lati */
+    display: flex;
+}
+
+.right-align {
+    justify-content: flex-end; /* Spinge il bottone tutto a destra */
+}
+
+/* Ritocco margin per i testi dentro l'header */
+.header-center h2 { margin: 0 0 5px 0; font-size: 1.8rem; }
+.header-center h3 { margin: 0; color: rgb(56, 56, 56); font-size: 1.3rem; }
+
+/* Card PDF (Contenitore) */
+.card-pdf-preview {
+    height: 70vh; /* 70% dell'altezza schermo */
+    padding: 0 !important; /* Niente padding per non tagliare il PDF */
+    overflow: hidden;
+    border: 2px solid #bdc3c7 !important;
+}
+
+.pdf-embed {
+    width: 100%;
+    height: 100%;
+}
+
+/* Bottoni Azione (Grigio e Verde) */
+.action-buttons-container {
+    margin-top: 30px;
+    display: flex;
+    justify-content: space-evenly; /* Distribuiti bene */
+}
+
+.btn-send {
+    background-color: #27ae60 !important;
+    padding: 15px 30px !important;
+    font-size: 1.2rem !important;
+    border-radius: 8px !important;
+    color: white;
+    cursor: pointer;
+}
+
+.btn-send:hover {
+    background-color: #219150 !important;
+    transform: translateY(-3px);
+}
+
+/* Box Feedback (Loading, Success, Error) */
+.feedback-box {
+    text-align: center;
+    margin-top: 30px;
+    padding: 40px;
+    border-radius: 8px;
+    background-color: #e3e3e3;
+}
+
+.feedback-box p {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.feedback-loading {
+    background: #e3e3e3;
+    border: 2px solid #797979;
+}
+
+.icon-large { font-size: 3rem; }
+
+/* Box Successo */
+.feedback-success {
+    background: #e8f8f5;
+    border: 2px solid #27ae60;
+}
+.text-success { color: #27ae60; }
+
+.success-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.btn-yahoo { 
+    background-color: #e97aec !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    text-decoration: none;}
+
+.btn-yahoo:hover {
+    background-color: #c14ed1 !important;
+    transform: translateY(-3px);
+}
+
+.btn-home-blue { 
+    background-color: #5cbfff !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+    text-decoration: none;}
+
+.btn-home-blue:hover {
+    background-color: #3498db !important;
+    transform: translateY(-3px);
+}
+
+/* Box Errore */
+.feedback-error {
+    background: #fdedec;
+    border: 2px solid #e74c3c;
+}
+
+.text-error { color: #c0392b; font-size: 1.5rem; }
+
+.text-mono { font-weight: bold; }
+
+.btn-retry {
+    background-color: #95a5a6 !important;
+    margin-top: 20px !important;
+    font-size: 1rem !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+}
+
+.btn-retry:hover {
+    background-color: #7f8c8d !important;
+    transform: translateY(-3px);
+}
+
+#riprova-errore-sessione {
+    font-size: 1.4rem !important;
+    padding: 8px !important;
+}
+
+/* ==========================================================================
+   AGGIUNTE REFACTORING (STORICO.HTML)
+   ========================================================================== */
+
+/* Helper Display */
+.d-block { display: block; }
+.d-none { display: none; }
+
+/* Card Tab Content (senza bordo sopra) */
+.card-tab-content {
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+}
+
+.text-black { color: black; }
+.select-container { margin-bottom: 20px; }
+
+/* TABS */
+.tabs {
+    overflow: hidden;
+    border-bottom: 1px solid #ccc;
+}
+
+.tab-link {
+    background-color: #f1f1f1;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 20px;
+    font-size: 1.1rem;
+    transition: 0.3s;
+    border-radius: 8px 8px 0 0;
+    margin-right: 5px;
+    color: #555;
+}
+.tab-link:hover { background-color: #ddd; }
+.tab-link.active { background-color: #3498db; color: white; font-weight: bold; }
+.tab-content { animation: fadeEffect 0.5s; }
+@keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+#btn-back-order {
+    text-decoration: none;
+}
+
+/* BARRA FILTRI REGISTRO */
+
+#filtro_testo_reg , #filtro_data_reg{
+    margin-top: 5px !important;
+}
+
+.filter-bar {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.relative { position: relative; }
+.filter-label { font-weight: bold; color: #2c3e50; }
+
+.input-filter {
+    width: 92%;
+    padding: 10px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 8px;
+    font-size: 1rem !important;
+    background: white;
+}
+
+.date-input { width: 82%; }
+.ml-15 { margin-left: 15px; }
+
+.calendar-icon {
+    /*position: absolute;*/
+    right: -6px;
+    bottom: 8px;
+    cursor: pointer;
+    font-size: 2rem;
+}
+
+#btn-reset-small {
+    background-color: #b0c1c2 !important;
+    padding: 4px 10px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#btn-reset-small:hover {
+    background-color: #95a5a6 !important;
+    transform: translateY(-3px);
+}
+
+/* Container principale della tabella deve essere relativo per fare da ancora */
+#tabella_ordini_wrapper {
+    position: relative;
+}
+
+/* La nostra etichetta centrale */
+.badge-ordini-totali {
+    position: absolute;
+    top: 0;                 /* Allineato in alto */
+    left: 50%;              /* Spinto al centro */
+    transform: translateX(-50%); /* Centrato perfettamente sull'asse X */
+    z-index: 100;           /* Per stare sopra a tutto */
+    margin-top: -7px;
+
+    /* Stile Estetico (modificalo qui come vuoi) */
+    background-color: #e9ecef;
+    color: #333;
+    border: 1px solid #ced4da;
+    padding: 6px 15px;
+    border-radius: 50px;    /* A pillola */
+    font-weight: 700;       /* Grassetto */
+    font-size: 1.2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Opzionale: Su schermi piccoli, nascondilo o spostalo per non coprire la ricerca */
+@media (max-width: 768px) {
+    .badge-ordini-totali {
+        position: static;
+        display: block;
+        transform: none;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+}
+
+/* Link Azione Tabella Registro */
+.btn-text-action {
+    padding: 0 !important;
+    font-size: 0.9rem !important;
+    cursor: pointer;
+    color: #3498db;
+    font-weight: bold;
+    /*text-decoration: underline;*/
+}
+
+.btn-text-action:hover {
+    text-decoration: underline !important;
+    color: #2176b5;
+    transform: translateY(-3px);
+}
+
+/* --- STATISTICHE --- */
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Box Dormienti */
+.card-dormienti {
+    border-left: 5px solid #e74c3c !important;
+    background-color: #fff5f5 !important;
+    margin-bottom: 20px;
+}
+
+.title-dormienti {
+    color: #c0392b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.subtitle-dormienti {
+    font-size: 1.1rem;
+    color: #202020;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.scroll-dormienti {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Grafici */
+.chart-container-large { height: 350px; }
+.chart-container-medium { height: 400px; }
+.chart-centered { max-width: 600px; margin: 0 auto; }
+
+/* Helpers Testo */
+.text-green-bold { color: #27ae60; font-weight: bold; font-size: 1.1rem; }
+.text-bold-dark { font-weight: bold; color: #2c3e50; font-size: 1.2rem; }
+.text-red-right { color: #e74c3c; text-align: right !important; font-size: 1.2rem; }
+.text-center { text-align: center; }
+.font-small { font-size: 0.95rem !important; }
+
+/* MODALE DETTAGLI */
+.modal-large { max-width: 1000px !important; max-height: 80vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; }
+#btn-close-modal { color: red; font-size: 1.7rem !important; cursor: pointer; padding: 6px 15px !important; border-radius: 8px; }
+#btn-close-modal:hover { background-color: #f8d7da !important; transform: translateY(-3px); }
+.modal-info-box { background-color: #e4e4e4; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+.mb-5 { margin: 5px 0; font-size: 1.3rem; }
+.text-data { color: black; font-size: 1.3rem; font-weight: 500;}
+.text-note { color: black; font-size: 1.3rem; font-weight: 500;}
+
+/* Bottone Excel */
+.btn-excel {
+    background-color: #268350 !important; /* Verde Excel Ufficiale */
+    padding: 8px 15px !important;
+    font-size: 1rem !important;
+    border-radius: 8px !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-excel:hover {
+    background-color: #1b633b !important;
+    transform: translateY(-3px);
+    cursor: pointer;
+}
+

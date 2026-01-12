@@ -1,0 +1,13 @@
+2025-12-18 00:45:50,214 - ERROR - Errore MODIFICA PRODOTTO id 200: name 'prod' is not defined
+2025-12-18 00:53:27,079 - ERROR - ERRORE SALVATAGGIO DB: 'prezzo_unit' is an invalid keyword argument for DettaglioOrdine
+2025-12-21 20:06:46,017 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:07:39,287 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:11:08,493 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine/{{ o.id }}' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:12:00,720 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine/{{ o.id }}' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:12:05,653 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine/{{ o.id }}' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:12:16,906 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:13:02,980 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:13:42,534 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine' with values ['ordine_id']. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:15:28,294 - ERROR - Errore caricamento STORICO: unexpected '}', expected ')'
+2025-12-21 20:15:37,640 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine'. Did you mean 'modifica_ordine_page' instead?
+2025-12-21 20:16:23,910 - ERROR - Errore caricamento STORICO: Could not build url for endpoint 'modifica_ordine'. Did you mean 'modifica_ordine_page' instead?

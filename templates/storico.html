@@ -1,0 +1,1068 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>📊 Storico e Analisi</h1>
+    <button class="btn-home" 
+        data-url="{{ url_for('home') }}" 
+        onclick="window.location.href=this.dataset.url">
+        Home
+    </button>
+</div>
+
+<div class="tabs">
+    <button id="tab-analisi-cliente" class="tab-link active" onclick="apriTab(event, 'AnalisiCliente')">🔎 Analisi per Cliente</button>
+    <button id="tab-registro-ordini" class="tab-link" onclick="apriTab(event, 'RegistroOrdini')">📂 Registro Ordini</button>
+    <button id="tab-statistiche" class="tab-link" onclick="apriTab(event, 'Statistiche'); caricaGrafici();">📈 Statistiche Generali</button>
+    <button id="btn-back-order" 
+            class="tab-link"
+            style="display: none;"
+            data-url="{{ url_for('crea_ordine') }}"
+            onclick="window.location.href=this.getAttribute('data-url')">
+        ⬅️ Torna all'Ordine
+    </button>
+    <button id="btn-back-modifica-storico" 
+            class="tab-link"
+            style="display: none;" 
+            onclick="">
+        ⬅️ Torna alla Modifica Ordine
+</div>
+
+<div id="AnalisiCliente" class="tab-content d-block">
+    <div class="card card-tab-content">
+        <h2 class="text-black">Seleziona un cliente per vedere cosa compra abitualmente.</h2>
+        
+        <div class="select-container">
+            <select id="select_storico_cliente" class="select2-box">
+                <option value="" disabled selected>Cerca Cliente...</option>
+                {% for c in clienti %}
+                <option value="{{ c.id }}">{{ c.nome }} (Cod. {{ c.codice }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <table id="tabella_abitudini" class="data-table display width-100">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Cod. Prodotto</th>
+                    <th style="width: 40%;">Nome Prodotto</th>
+                    <th style="width: 15%;">Tot. Acquistati</th>
+                    <th style="width: 15%;">Ultimo Prezzo Pagato</th>
+                    <th style="width: 15%;">Data Ultimo Acquisto</th>
+                </tr>
+            </thead>
+            <tbody id="body_abitudini"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="RegistroOrdini" class="tab-content d-none">
+    <div class="card card-tab-content">
+        
+        <div class="filter-bar">
+            
+            <div class="filter-item flex-1 relative">
+                <label for="filtro_data_reg" class="filter-label">📅 Filtra per Data:</label>
+                <input type="text" id="filtro_data_reg" class="input-filter date-input" placeholder="Scrivi (es. 12/2025) o usa il calendario ->">
+                <span id="btn_apri_cal" class="calendar-icon" title="Scegli una data precisa">🗓️</span>
+            </div>
+
+            <div class="filter-item flex-2">
+                <label for="filtro_testo_reg" class="filter-label ml-15">🔍 Cerca nelle note:</label>
+                <input type="text" id="filtro_testo_reg" placeholder="Scrivi per cercare..." class="input-filter ml-15">
+            </div>
+
+            <div class="filter-item flex-0">
+                <button onclick="resetFiltriRegistro()" id="btn-reset-small" title="Svuota i campi di ricerca">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+
+        <table id="tabella_registro" class="data-table display width-100">
+            <thead>
+                <tr>
+                    <th style="width: 14%;">Data e Ora Invio</th> 
+                    <th style="width: 44%;">Note</th>
+                    <th style="width: 41%;">Azioni</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in ordini %}
+                <tr>
+                    {% set orario_pulito = o.ora_creazione.replace('-', ':') if o.ora_creazione else '00:00' %}
+                    {% set orario_sort = o.ora_creazione.replace('-', '') if o.ora_creazione else '0000' %}
+                    
+                    <td data-order="{{ o.data_consegna.strftime('%Y%m%d') }}{{ orario_sort }}">
+                        
+                        <strong>{{ o.data_consegna.strftime('%d/%m/%Y') }}</strong>
+                        
+                        <span style="color: #5c6768; font-size: 0.9em; margin-left: 5px;">
+                            ({{ orario_pulito }})
+                        </span>
+                    
+                    </td>
+                    
+                    <td>{{ o.note }}</td>
+                    
+                    <td>
+                        <a onclick="vediDettagliOrdine('{{ o.id }}')" class="btn-text-action" title="Vedi Dettagli Ordine">
+                            👁️ Vedi Dettagli
+                        </a>
+                        <a href="/modifica_ordine/{{ o.id }}" class="btn-text-action" style="text-decoration: none;" title="Modifica Ordine Storico">
+                            ✏️ Modifica ordine
+                        </a>
+                        <a onclick="eliminaOrdine('{{ o.id }}')" class="btn-rimuoviRiga" title="Elimina Ordine Definitivamente">
+                            🗑️ Elimina ordine
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="Statistiche" class="tab-content d-none">
+    
+    <div class="stats-container">
+
+        <div class="card">
+            <h2>📈 Andamento Cartoni Venduti (Per Mese)</h2>
+            <div class="chart-container-large">
+                <canvas id="chartAndamento"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🏆 Top 5 Prodotti</h2>
+            <div class="chart-container-medium"> 
+                <canvas id="chartProdotti"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🥇 Top 5 Clienti Di Sempre</h2>
+            <div class="chart-container-medium chart-centered"> 
+                <canvas id="chartClienti"></canvas>
+            </div>
+        </div>
+
+        <div style="width: 100%; text-align: center; margin-top: -20px;">
+            <h2 style="border-bottom: 2px solid #ccc; display: inline-block; padding-bottom: 10px;">
+                💶 Analisi Fatturato & Business
+            </h2>
+        </div>
+        
+        <div class="card">
+            <h2>📈 Andamento Fatturato Mensile (€)</h2>
+            <div class="chart-container-large">
+                <canvas id="chartFatturatoMese"></canvas>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🏆 Top 10 Clienti (Per Fatturato)</h2>
+            <div class="chart-container-medium">
+                <canvas id="chartTopClientiMoney"></canvas>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>💎 Top 10 Prodotti (Per Incasso)</h2>
+            <div class="chart-container-medium">
+                <canvas id="chartTopProdottiMoney"></canvas>
+            </div>
+        </div>
+
+        <div class="card card-dormienti">
+            <h2 class="title-dormienti">
+                ⚠️ Clienti da Risvegliare <span class="subtitle-dormienti">(Nessun ordine negli ultimi 30+ giorni)</span>
+            </h2>
+            <div class="scroll-dormienti">
+                <table class="data-table font-small width-100">
+                    <thead class="d-none"><tr><th>Cliente</th><th>Assenza</th></tr></thead>
+                    <tbody id="lista_dormienti"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="modal-dettagli" class="modal-overlay d-none">
+    <div class="card modal-content modal-large">
+        
+        <div class="modal-header">
+            <h1>Dettaglio Ordine</h1>
+            
+            <div style="display: flex; gap: 15px; align-items: center;">
+    
+                <button id="btn-download-excel" class="btn-excel" onclick="confermaDownloadExcel(this)">
+                    📊 Scarica Excel
+                </button>
+            
+                <button onclick="chiudiModal()" id="btn-close-modal">✖</button>
+            </div>
+        </div>
+        
+        <hr>
+
+        <div class="modal-info-box">
+            <p class="mb-5">📅 <strong>Data Consegna:</strong> <span id="det-data" class="text-data">-</span></p>
+            <p class="mb-5">👥 <strong>Numero Ordini:</strong> <span id="det-num-clienti" class="text-note"></span></p>
+            <p class="mb-5">📦 <strong>Totale Cartoni:</strong> <span id="det-num-cartoni" class="text-note"></span></p>
+            <p class="mb-5">📝 <strong>Note:</strong> <span id="det-note" class="text-note">-</span></p>
+            <p class="mb-5">💰 <strong>Totale Generale:</strong> <span id="det-totale" class="text-note">-</span></p>
+        </div>
+
+        <table class="data-table width-100">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Codice Prodotto</th>
+                    <th>Nome Prodotto</th>
+                    <th>Q.tà</th>
+                    <th>Prezzo Unit.</th>
+                    <th>Totale</th>
+                </tr>
+            </thead>
+            <tbody id="body_dettagli_ordine"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    var tabellaRegistro;
+    var tabellaAbitudini;
+
+    $(document).ready(function() {
+        $('#select_storico_cliente').select2({ placeholder: "Cerca Cliente...", width: '100%', allowClear: true});
+
+        tabellaRegistro = $('#tabella_registro').DataTable({
+            "order": [[ 0, "desc" ]], 
+            "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/it-IT.json" },
+            "pageLength": -1,
+            "lengthMenu": [ [1, 10, 25, 50, 100, -1], [1, 10, 25, 50, 100, "Tutti"] ],
+            autoWidth: false,
+            "initComplete": function(settings, json) {
+                // Calcoliamo il totale delle righe
+                var api = this.api();
+                var totale = api.rows().count();
+                
+                // Creiamo la label personalizzata
+                // La inseriamo dentro '.dataTables_length' così sta vicina al menu a tendina
+                // Creiamo il div con la classe CSS che abbiamo definito
+                var label = $(`<div id="badge-totale" class="badge-ordini-totali">Ordini totali: ${totale}</div>`);
+            
+                // Lo inseriamo nel wrapper generale della tabella
+                $('#tabella_registro_wrapper').append(label);
+
+                // --- FIX LABEL CERCA E INPUT (Elimina i warning gialli) ---
+                // 1. Troviamo l'input generato da DataTables
+                var inputSearch = $('#tabella_registro_filter input');
+                
+                // 2. Gli diamo ID e Name unici
+                inputSearch.attr('id', 'dt_search_field');
+                inputSearch.attr('name', 'dt_search_field');
+                
+                // 3. Troviamo la label generata e le diciamo "tu servi per l'input con id dt_search_field"
+                var labelSearch = $('#tabella_registro_filter label');
+                labelSearch.attr('for', 'dt_search_field');
+            },
+            "drawCallback": function(settings) {
+                var api = this.api();
+                // Conta le righe visibili (dopo eventuali filtri ricerca)
+                var totale = api.rows({filter: 'applied'}).count();
+                
+                // Aggiorna il testo
+                $('#badge-totale').text('Ordini totali: ' + totale);
+            }
+        });
+
+        tabellaAbitudini = $('#tabella_abitudini').DataTable({
+            "order": [[ 2, "desc" ]], 
+            "dom": 'rt',
+            "pageLength": -1,
+            "lengthMenu": [ [1, 10, 25, 50, 100, -1], [1, 10, 25, 50, 100, "Tutti"] ],
+            "language": { 
+                "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/it-IT.json",
+                "emptyTable": "Seleziona un cliente per vedere i dati."
+            }
+        });
+
+        $('#select_storico_cliente').on('select2:select', function (e) {
+            caricaAbitudini(e.params.data.id);
+        });
+
+        $('#select_storico_cliente').on('select2:clear', function (e) {
+            var settings = tabellaAbitudini.settings()[0];
+            settings.oLanguage.sEmptyTable = "Seleziona un cliente per vedere i dati.";
+            tabellaAbitudini.clear().draw();
+        });
+
+        // Filtri
+        $('#filtro_data_reg').on('input keyup', function() { tabellaRegistro.column(0).search(this.value).draw(); });
+        $('#filtro_testo_reg').on('keyup', function() { tabellaRegistro.search(this.value).draw(); });
+        
+        flatpickr("#btn_apri_cal", {
+            locale: "it",
+            dateFormat: "d/m/Y",
+            disableMobile: "true",
+            positionElement: $("#filtro_data_reg")[0], 
+            onChange: function(selectedDates, dateStr) {
+                $('#filtro_data_reg').val(dateStr);
+                tabellaRegistro.column(0).search(dateStr).draw();
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                // Il calendario è stato creato in memoria, ora possiamo modificare i suoi elementi interni
+                
+                // 1. Sistemiamo la Select del Mese
+                var monthSelect = instance.calendarContainer.querySelector(".flatpickr-monthDropdown-months");
+                if (monthSelect) {
+                    monthSelect.setAttribute("id", "fp-month-select");
+                    monthSelect.setAttribute("name", "fp-month-select");
+                }
+
+                // 2. Già che ci siamo, sistemiamo anche l'Input dell'Anno (che darà lo stesso errore)
+                var yearInput = instance.calendarContainer.querySelector(".numInput.cur-year");
+                if (yearInput) {
+                    yearInput.setAttribute("id", "fp-year-input");
+                    yearInput.setAttribute("name", "fp-year-input");
+                    // Fix label per l'anno
+                    yearInput.setAttribute("aria-label", "Anno");
+                }
+            }
+        });
+
+        // --- GESTIONE PARAMETRI URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const clienteId = urlParams.get('cliente_id');
+        const fromPage = urlParams.get('from');
+        const tab = urlParams.get('tab');
+        const ordineId = urlParams.get('ordine_id');
+
+        if(tab === 'registro_ordini') {
+            // Apri il tab Registro Ordini
+            $('.tab-content').hide();
+            $('.tab-link').removeClass('active');
+            $('#RegistroOrdini').show();
+            $('#tab-registro-ordini').addClass('active');
+        }
+
+        if (clienteId) {
+            // 1. Impostiamo il valore nella Select2
+            $('#select_storico_cliente').val(clienteId).trigger('change');
+            
+            // 2. Carichiamo manualmente i dati (perché il trigger change a volte non basta se select2 non è pronto)
+            caricaAbitudini(clienteId);
+
+            // 3. Se veniamo da "crea_ordine", mostriamo il bottone dedicato
+            if (fromPage === 'crea_ordine') {
+                $('#btn-back-order').show();
+            }
+            else if (fromPage === 'modifica_ordine' && ordineId) {
+                $('#btn-back-modifica-storico')
+                .attr('onclick', "window.location.href='/modifica_ordine/" + ordineId + "'")
+                .show();
+            }
+        }
+
+        caricaStatisticheEconomiche();
+
+    });
+
+    function chiudiModal() {
+        $('#modal-dettagli').hide();
+        // SBLOCCA SCROLL SFONDO
+        $('body').removeClass('no-scroll');
+    }
+
+    function apriTab(evt, tabName) {
+        $('.tab-content').hide();
+        $('.tab-link').removeClass('active');
+        $('#' + tabName).show();
+        $(evt.currentTarget).addClass('active');
+    }
+
+    function resetFiltriRegistro() {
+        $('#filtro_data_reg').val('');
+        $('#filtro_testo_reg').val('');
+        tabellaRegistro.search('').columns().search('').draw();
+    }
+
+    function caricaAbitudini(id) {
+        var settings = tabellaAbitudini.settings()[0];
+        settings.oLanguage.sEmptyTable = "⏳ Caricamento storico in corso...";
+        tabellaAbitudini.clear().draw();
+        
+        fetch('/api/storico_cliente/' + id)
+        .then(r => r.json())
+        .then(data => {
+            if(data.length > 0) {
+                data.forEach(p => {
+                    // Formattiamo il prezzo
+                    // Se p.ultimo_prezzo esiste usiamo toFixed(2), altrimenti 0.00
+                    var prezzoFormat = p.ultimo_prezzo ? parseFloat(p.ultimo_prezzo).toFixed(2) : "0.00";
+
+                    tabellaAbitudini.row.add([
+                        `<strong>${p.codice}</strong>`,
+                        p.nome,
+                        `<span>${p.totale}</span>`,
+                        `€ ${prezzoFormat}`,
+                        p.ultima_data
+                    ]);
+                });
+            } else {
+                settings.oLanguage.sEmptyTable = "⚠️ Il cliente selezionato non ha fatto nessun ordine nello storico.";
+            }
+            tabellaAbitudini.draw();
+        })
+        .catch(err => {
+            console.error(err);
+            settings.oLanguage.sEmptyTable = "❌ Errore durante il caricamento dei dati.";
+            tabellaAbitudini.draw();
+        });
+    }
+
+    function vediDettagliOrdine(id) {
+        // 0. BLOCCA SCROLL SFONDO
+        $('body').addClass('no-scroll');
+        $('#modal-dettagli').show();
+
+        // 1. Salva l'ID nel bottone Excel (usando data-id)
+        $('#btn-download-excel').data('id', id);
+
+        $('#body_dettagli_ordine').html('<tr><td colspan="4" class="text-center">Caricamento...</td></tr>');
+        $('#det-data').text('...'); $('#det-note').text('...');
+
+        fetch('/api/dettaglio_ordine/' + id)
+        .then(r => r.json())
+        .then(data => {
+            $('#det-data').text(data.info.data);
+            $('#det-num-clienti').text(data.info.num_clienti);
+            $('#det-num-cartoni').text(data.info.num_cartoni);
+            $('#det-note').text(data.info.note || '-'); // Se null mette un trattino
+            // Mostra il totale generale se vogliamo
+            $('#det-totale').text('€ ' + data.info.totale_generale.toFixed(2));
+
+            var html = '';
+            data.righe.forEach(r => {
+                // Formattiamo i prezzi
+                var pUnit = r.prezzo_unit.toFixed(2);
+                var pTot = r.prezzo_tot.toFixed(2);
+                html += `
+                    <tr>
+                        <td>${r.cliente}</td>
+                        <td>${r.codice}</td>
+                        <td>${r.prodotto}</td>
+                        <td class="text-center"><strong>${r.quantita}</strong></td>
+                        <td class="text-right">€ ${pUnit}</td>
+                        <td class="text-right"><strong>€ ${pTot}</strong></td>
+                    </tr>`;
+            });
+            $('#body_dettagli_ordine').html(html);
+        });
+    }
+
+    function eliminaOrdine(id) {
+        Swal.fire({
+            title: 'Sei sicuro?',
+            text: "Questa azione è irreversibile! L'ordine e tutti i suoi dati verranno cancellati per sempre!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33', // Rosso pericolo
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sì, elimina tutto!',
+            cancelButtonText: 'Annulla'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Chiamata al backend
+                fetch('/api/elimina_ordine/' + id, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    if(data.success) {
+                        Swal.fire(
+                            'Eliminato!',
+                            'L\'ordine è stato cancellato dal database.',
+                            'success'
+                        ).then(() => {
+                            // Ricarichiamo la pagina mantenendo il tab aperto
+                            window.location.href = '/storico?tab=registro_ordini'; 
+                        });
+                    } else {
+                        Swal.fire('Errore', data.error, 'error');
+                    }
+                })
+                .catch(err => Swal.fire('Errore', 'Impossibile contattare il server', 'error'));
+            }
+        });
+    }
+
+    function confermaDownloadExcel(btn) {
+        // Recupera l'ID dal bottone
+        var idOrdine = $(btn).data('id');
+        
+        if (!idOrdine) {
+            Swal.fire('Errore', 'ID ordine non trovato', 'error');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Scaricare Excel?',
+            text: "Verrà generato il file .xlsx con la tabella completa dell'ordine.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#217346', // Verde Excel
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, scarica',
+            cancelButtonText: 'Annulla'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Feedback di caricamento
+                Swal.fire({
+                    title: 'Generazione Excel in corso...',
+                    didOpen: () => Swal.showLoading()
+                });
+                // Avvia il download
+                // Nota: Per i file, window.location.href è il metodo più sicuro per scaricare
+                // Chiamata alla rotta che ora SALVA su disco invece di scaricare
+                fetch('/scarica_ordine_excel/' + idOrdine)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === "OK") {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Excel Salvato!',
+                            html: 'Trovi il file in:<br>' + '<b>ARCHIVIO_EXCEL/' + d.filename + '</b>',
+                            confirmButtonColor: '#217346'
+                        });
+                    } else {
+                        Swal.fire('Errore', d.errore, 'error');
+                    }
+                })
+                .catch(e => Swal.fire('Errore', 'Impossibile contattare il server', 'error'));
+                        
+            }
+        });
+
+    }
+
+    let myChart1, myChart2, myChart3;
+
+    function caricaGrafici() {
+        fetch('/api/statistiche')
+        .then(r => r.json())
+        .then(data => {
+            var htmlDormienti = '';
+            if (data.dormienti.length === 0) {
+                htmlDormienti = '<tr><td colspan="2" class="text-green-bold">✅ Ottimo! Tutti i clienti sono attivi.</td></tr>';
+            } else {
+                data.dormienti.forEach(d => {
+                    htmlDormienti += `<tr><td class="text-bold-dark">${d.nome}</td><td class="text-red-right">Assente da: <strong>${d.giorni}</strong></td></tr>`;
+                });
+            }
+            $('#lista_dormienti').html(htmlDormienti);
+            
+            const ctx1 = document.getElementById('chartAndamento').getContext('2d');
+            if(myChart1) myChart1.destroy();
+            myChart1 = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: data.andamento.labels,
+                    datasets: [{
+                        label: 'Cartoni Venduti',
+                        data: data.andamento.values,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.5)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 8,
+                        pointHoverRadius: 11,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 0.5)',
+                        pointBorderColor: '#3498db',
+                        pointBorderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            onClick: (e) => e.stopPropagation(), // Blocca il click sulla legenda
+                            labels: {
+                                font: {
+                                    weight: "bold",
+                                    size:20
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        title: {
+                            display: false,
+                            text: "Cartoni Venduti",
+                            color: '#000000',
+                            font: { 
+                                size: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: { label: (c) => ` ${c.raw} Cartoni` },
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 10,
+                            titleFont: {
+                                size: 20
+                            },
+                            bodyFont: {
+                                size: 20
+                            },
+                            cornerRadius: 8,
+                            usePointStyle: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Numero Cartoni',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Mese',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 'bold',
+                                    size: 15
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('chartProdotti').getContext('2d');
+            if(myChart2) myChart2.destroy();
+            myChart2 = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: data.prodotti.labels,
+                    datasets: [{
+                        label: 'Quantità',
+                        data: data.prodotti.values,
+                        backgroundColor: ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#1abc9c'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
+                    plugins: {
+                        legend: { 
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'I 5 Prodotti più venduti',
+                            color: '#000000',
+                            font: {
+                                size: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Numero Cartoni',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Nome Prodotto',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                minRotation: 0,
+                                autoSkip: false,
+                                font: {
+                                    weight: 'bold',
+                                    size: 15
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const ctx3 = document.getElementById('chartClienti').getContext('2d');
+            if(myChart3) myChart3.destroy();
+            myChart3 = new Chart(ctx3, {
+                type: 'doughnut',
+                data: { 
+                    labels: data.clienti.labels,
+                    datasets: [{
+                        data: data.clienti.values,
+                        backgroundColor: ['#8e44ad', '#2980b9', '#27ae60', '#d35400', '#c0392b'],
+                        hoverOffset: 4 
+                    }] 
+                },
+                options: { 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Numero di cartoni complessivi ordinati', font: { size: 20 }, color: '#000000' },
+                        legend: { 
+                            position: 'right',
+                            onClick: (e) => e.stopPropagation(), // Blocca il click sulla legenda
+                            labels: {
+                                generateLabels: function(chart) {
+                                    const dataset = chart.data.datasets[0];
+                                    const labels = chart.data.labels;
+                                    
+                                    // Creiamo noi la lista mappando i nomi
+                                    return labels.map(function(label, i) {
+                                        const value = dataset.data[i];
+                                        const color = dataset.backgroundColor[i];
+                                        
+                                        return {
+                                            // Qui decidiamo cosa scrivere: Nome + (Numero)
+                                            text: label + " (" + value + ")",
+                                            fillStyle: color,       // Colore quadratino
+                                            strokeStyle: color,     // Bordo quadratino
+                                            lineWidth: 0,
+                                            hidden: isNaN(dataset.data[i]) || chart.getDatasetMeta(0).data[i].hidden,
+                                            index: i // Fondamentale per cliccare e nascondere le fette
+                                        };
+                                    });
+                                },
+                                font: {
+                                    size: 18, // Grandezza testo legenda
+                                    weight: 'bold'
+                                },
+                                boxWidth: 20, // Grandezza quadratino colore
+                                padding: 15   // Spazio tra le righe
+                            }
+                        }
+                    } 
+                }
+            });
+        });
+    }
+
+    function caricaStatisticheEconomiche() {
+        fetch('/api/statistiche_economiche')
+        .then(response => response.json())
+        .then(data => {
+            if(data.error) {
+                console.error("Errore statistiche economiche:", data.error);
+                return;
+            }
+    
+            // 1. GRAFICO LINEA (Fatturato Mensile €)
+            var ctxMese = document.getElementById('chartFatturatoMese').getContext('2d');
+            // Se c'è un grafico precedente, distruggilo (sicurezza)
+            // Nota: Assicurati che chartMese sia definita globalmente o accessibile
+            if(typeof window.myChartMese !== 'undefined') window.myChartMese.destroy();
+
+            new Chart(ctxMese, {
+                type: 'line',
+                data: {
+                    labels: data.mesi_labels,
+                    datasets: [{
+                        label: 'Fatturato (€)',
+                        data: data.mesi_values,
+                        borderColor: '#2ecc71', // Verde brillante (soldi)
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 8,
+                        pointBorderWidth: 3,
+                        pointHoverRadius: 11,
+                        pointBackgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        pointBorderColor: '#2ecc71'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            onClick: (e) => e.stopPropagation(), // Blocca il click sulla legenda
+                            labels: {
+                                font: {
+                                    weight: "bold",
+                                    size:20
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        title: {
+                            display: false,
+                            text: "Fatturato (€)",
+                            color: '#000000',
+                            font: { 
+                                size: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: { 
+                                label: (c) => `Fatturato (€): ${Number(c.raw).toFixed(2)}` 
+                            },
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            padding: 10,
+                            titleFont: {
+                                size: 20
+                            },
+                            bodyFont: {
+                                size: 20
+                            },
+                            cornerRadius: 8,
+                            usePointStyle: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Fatturato (€)',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: { callback: function(v){ return '€ ' + v; } }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Mese',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                font: {
+                                    weight: 'bold',
+                                    size: 15
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+    
+            // 2. GRAFICO BARRE ORIZZONTALI (Top 10 Clienti per fatturato €)
+            var ctxCli = document.getElementById('chartTopClientiMoney').getContext('2d');
+            new Chart(ctxCli, {
+                type: 'bar',
+                data: {
+                    labels: data.top_clienti.labels,
+                    datasets: [{
+                        label: 'Spesa Totale (€)',
+                        data: data.top_clienti.values,
+                        backgroundColor: '#3498db', // Blu
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Barre orizzontali per leggere meglio i nomi
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Clienti',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                minRotation: 0,
+                                autoSkip: false,
+                                font: {
+                                    weight: 'bold',
+                                    size: 15
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Fatturato (€)',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                minRotation: 0,
+                                autoSkip: false,
+                                font: {
+                                    weight: 'bold',
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+    
+            // 3. GRAFICO BARRE ORIZZONTALI (Top 10 Prodotti per incasso €)
+            var ctxProd = document.getElementById('chartTopProdottiMoney').getContext('2d');
+            new Chart(ctxProd, {
+                type: 'bar',
+                data: {
+                    labels: data.top_prodotti.labels,
+                    datasets: [{
+                        label: 'Incasso Totale (€)',
+                        data: data.top_prodotti.values,
+                        backgroundColor: '#f1c40f', // Giallo/Oro
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Barre orizzontali anche qui
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, chartElement) => {
+                        event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Prodotti',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                minRotation: 0,
+                                autoSkip: false,
+                                font: {
+                                    weight: 'bold',
+                                    size: 15
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Fatturato (€)',
+                                color: '#000000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 20
+                                },
+                                padding: 20
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                minRotation: 0,
+                                autoSkip: false,
+                                font: {
+                                    weight: 'bold',
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+    
+        })
+        .catch(err => console.error(err));
+    }
+
+</script>
+
+{% endblock %}

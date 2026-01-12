@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card header-card">
+    <div class="page-header">
+        <h1>✏️ Modifica Cliente: "{{ cliente.nome }}"</h1>
+        <button class="btn-home" 
+            data-url="{{ url_for('home') }}" 
+            onclick="window.location.href=this.dataset.url">
+            Home
+        </button>
+    </div>
+    
+    <form method="POST" class="form-row">
+        
+        <div class="form-group">
+            <label>Codice</label>
+            <input type="number" name="codice" value="{{ cliente.codice }}" placeholder="{{ cliente.codice }}" min="1" step="1" required>
+        </div>
+        
+        <div class="form-group flex-grow-2">
+            <label>Nome</label>
+            <input type="text" name="nome" value="{{ cliente.nome }}" placeholder="{{ cliente.nome }}" required>
+        </div>
+
+        <div class="form-group flex-grow-2">
+            <label>Note</label>
+            <input type="text" name="note" value="{{ cliente.note }}">
+        </div>
+        
+        <div class="form-group flex-full btn-row">
+            
+            <button type="button" class="btn-save" onclick="confermaModifica(this)">
+                💾 Salva Modifiche
+            </button>
+
+            <button type="button" class="btn-reset" onclick="confermaReset(this)">
+                🔄 Resetta Campi
+            </button>
+
+            {% if next_page == 'crea_ordine' %}
+            <button type="button" 
+                class="btn-cancel" 
+                data-url="{{ url_for('crea_ordine') }}" 
+                onclick="confermaAnnulla(event, this.dataset.url)">
+                ❌ Annulla e Torna all'Ordine
+            </button>
+            {% else %}
+            <button type="button" 
+                class="btn-cancel" 
+                data-url="{{ url_for('gestione_clienti') }}" 
+                onclick="confermaAnnulla(event, this.dataset.url)">
+                ❌ Annulla e Torna Indietro
+            </button>
+            {% endif %}
+
+        </div>
+
+    </form>
+</div>
+
+<script>
+    // 1. Conferma SALVATAGGIO
+    function confermaModifica(btn) {
+        var form = btn.closest('form');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        
+        Swal.fire({
+            title: 'Salvare le modifiche?',
+            text: "I dati del cliente verranno aggiornati.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f39c12',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, salva',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) form.submit();
+        });
+    }
+
+    // 2. Conferma RESET
+    function confermaReset(btn) {
+        Swal.fire({
+            title: 'Resettare i campi?',
+            text: "Torneranno ai valori originali.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#34495e',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, resetta',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var form = btn.closest('form');
+                form.reset();
+                document.querySelectorAll('.error-highlight').forEach(el => el.classList.remove('error-highlight'));
+            }
+        });
+    }
+
+    // 3. Conferma ANNULLA
+    function confermaAnnulla(event, urlDestinazione) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Annullare le modifiche?',
+            text: "Le modifiche non salvate andranno perse.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sì, esci',
+            cancelButtonText: 'Resta qui'
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = urlDestinazione;
+        });
+    }
+</script>
+
+{% endblock %}

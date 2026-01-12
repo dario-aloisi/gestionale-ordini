@@ -1,0 +1,5 @@
+Idee future (ora mi siddia o non sono necessarie)
+
+1) Ricerca "Chi ha comprato cosa?"
+Nello storico attuale puoi cercare per Cliente o per Data. Ma se ti chiedessi: "Chi è che mi ha ordinato i Krapfen l'ultima volta?", dalla tabella principale non lo vedi (perché i prodotti sono nascosti nel "Dettaglio").
+

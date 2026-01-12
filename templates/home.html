@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="home-header">
+    <button onclick="spegniSistema()" class="btn-shutdown">
+        🔴 ESCI E SPEGNI TUTTO
+    </button>
+</div>
+
+<div class="menu-grid">
+    
+    <a href="{{ url_for('crea_ordine') }}" class="menu-card card-blue">
+        <div class="menu-icon">📝</div>
+        <div class="menu-title">Nuovo Ordine</div>
+        <div class="menu-desc">Compila e spedisci</div>
+    </a>
+
+    <a href="{{ url_for('gestione_prodotti') }}" class="menu-card card-green">
+        <div class="menu-icon">📦</div>
+        <div class="menu-title">Prodotti</div>
+        <div class="menu-desc">Gestisci listino prodotti</div>
+    </a>
+
+    <a href="{{ url_for('gestione_clienti') }}" class="menu-card card-orange">
+        <div class="menu-icon">👥</div>
+        <div class="menu-title">Clienti</div>
+        <div class="menu-desc">Gestisci listino clienti</div>
+    </a>
+
+    <a href="{{ url_for('storico') }}" class="menu-card card-purple">
+        <div class="menu-icon">📊</div>
+        <div class="menu-title">Storico</div>
+        <div class="menu-desc">Analisi e Registro</div>
+    </a>
+
+</div>
+
+<div class="dashboard-container">
+    
+    <div class="card-dashboard border-blue">
+        <div class="dash-icon color-blue">📅</div>
+        <div class="dash-num">{{ n_ord }}</div>
+        <div class="dash-text">Ordini questo Mese</div>
+    </div>
+
+    <div class="card-dashboard border-green">
+        <div class="dash-icon color-green">📦</div>
+        <div class="dash-num">{{ n_prod }}</div>
+        <div class="dash-text">Prodotti Totali</div>
+    </div>
+
+    <div class="card-dashboard border-orange">
+        <div class="dash-icon color-orange">👥</div>
+        <div class="dash-num">{{ n_cli }}</div>
+        <div class="dash-text">Clienti Totali</div>
+    </div>
+
+</div>
+
+<div class="backup-container-large">
+    <a href="#" 
+       class="btn-backup-large" 
+       data-url="{{ url_for('backup_dati') }}"
+       onclick="scaricaBackup(event)">
+        
+        <span class="backup-icon">💾</span>
+        
+        <div class="backup-text-group">
+            <span class="backup-title">SCARICA BACKUP DI SICUREZZA</span>
+            <span class="backup-desc">Salva una copia dei dati in locale</span>
+        </div>
+        
+    </a>
+</div>
+
+<script>
+
+    function scaricaBackup(e) {
+        e.preventDefault(); // Ferma il link normales
+
+        Swal.fire({
+            title: 'Scaricare Backup?',
+            text: "Il database verrà salvato nella cartella 'BACKUP' del progetto.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#2c3e50',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Sì, scarica',
+            cancelButtonText: 'Annulla'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                // Feedback caricamento
+                Swal.fire({ title: 'Salvataggio in corso...', didOpen: () => Swal.showLoading() });
+                
+                // Chiamata al server
+                fetch('/backup_dati')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "OK") {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Backup Completato!',
+                            html: 'Salvato come: <b>' + data.filename + '</b><br>Nella cartella <b>BACKUP</b> del progetto.',
+                            confirmButtonColor: '#2c3e50'
+                        });
+                    } else {
+                        Swal.fire('Errore', data.errore, 'error');
+                    }
+                })
+                .catch(err => {
+                    Swal.fire('Errore', 'Impossibile contattare il server', 'error');
+                });
+            }
+        })
+    }
+
+    function spegniSistema() {
+        Swal.fire({
+            title: 'Chiudere il programma?',
+            html: "Il server verrà spento.<br>Per riaprirlo dovrai cliccare l'icona sul Desktop.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c', // Rosso
+            cancelButtonColor: '#95a5a6',  // Grigio
+            confirmButtonText: 'Sì, spegni tutto',
+            cancelButtonText: 'Annulla'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                // 1. Chiamata al server
+                fetch('/spegni').catch(e => {});
+
+                // 2. Pulizia Grafica (Via CSS e Script)
+                document.querySelectorAll('link[rel="stylesheet"], script[src]').forEach(el => el.remove());
+
+                // 3. Schermata di Addio (Stile inline per sicurezza)
+                document.body.innerHTML = `
+                    <div style='display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; background-color:#f4f4f9; color:#2c3e50;'>
+                        <div style='font-size:4rem;'>👋</div>
+                        <h1 style='font-size:3rem; margin:10px 0;'>A Presto!</h1>
+                        <p style='font-size:1.5rem;'>Il gestionale è stato spento correttamente.</p>
+                        <p id='msg-chiusura' style='color:#7f8c8d; margin-top:20px;'>Tentativo di chiusura automatica...</p>
+                        <button id='btn-chiudi' onclick="chiudiForzato()" style="margin-top:20px; padding:15px 30px; font-size:1.2rem; cursor:pointer; background-color:#e74c3c; color:white; border:none; border-radius:8px;">Chiudi Scheda</button>
+                    </div>
+                `;
+
+                // 4. Tentativo Chiusura
+                setTimeout(chiudiForzato, 1000);
+            }
+        });
+    }
+
+    function chiudiForzato() {
+        window.close();
+        setTimeout(function() {
+            var msg = document.getElementById('msg-chiusura');
+            var btn = document.getElementById('btn-chiudi');
+            if(msg) msg.innerText = "Il browser impedisce la chiusura automatica.";
+            if(btn) {
+                btn.innerText = "✖ Clicca la X in alto per uscire";
+                btn.style.backgroundColor = "#95a5a6";
+                btn.style.cursor = "default";
+            }
+        }, 1500);
+    }
+
+</script>
+
+{% endblock %}

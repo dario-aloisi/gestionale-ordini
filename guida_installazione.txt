@@ -1,0 +1,34 @@
+Copia la cartella di questo progetto così com'è.
+
+GUIDA INSTALLAZIONE GESTIONALE (Per PC Windows)
+-----------------------------------------------------
+
+PASSO 1: INSTALLARE PYTHON (Testato e funzionante con Python 3.13.9)
+1. Vai su Google e cerca "Download Python". In alternativa scaricalo da Microsoft Store.
+2. Scarica l'ultima versione per Windows.
+3. ATTENZIONE: Quando apri l'installazione, metti la spunta su "ADD PYTHON TO PATH" in basso. È fondamentale!
+4. Clicca Install Now.
+
+PASSO 2: INSTALLARE LE LIBRERIE
+1. Apri questa cartella del gestionale.
+2. Clicca con il tasto destro in uno spazio vuoto -> "Apri nel Terminale" (o apri CMD e naviga qui).
+3. Scrivi questo comando e premi Invio:
+   pip install -r requirements.txt
+4. Aspetta che finisca di scaricare tutto.
+
+PASSO 3: CREARE IL COLLEGAMENTO SUL DESKTOP
+1. Cerca il file "Avvia_Gestionale.bat" in questa cartella.
+2. Cliccaci con il tasto destro -> Invia a -> Desktop (crea collegamento).
+3. Vai sul Desktop, rinomina il collegamento in "Gestionale Ordini".
+4. (Opzionale) Tasto destro sul collegamento -> Proprietà -> Cambia Icona -> Scegline una carina.
+
+PASSO 4: PRIMO AVVIO E IMPORTAZIONE DATI (Se serve)
+1. Se il database è vuoto e vuoi importare il file Excel vecchio:
+   - Assicurati che il file si chiami 'listino.ods' e sia in questa cartella.
+   - Apri il terminale nella cartella.
+   - Scrivi: py importa_dati.py (in base alla versione di python potresti dover scriver "python" invece di "py")
+2. Ora puoi avviare il programma dall'icona sul desktop.
+
+Se serve cambiare qualcosa o si hanno bug e problemi, contattare il creatore Dario a.k.a gufo100.
+
+FINE.
